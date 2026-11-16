@@ -1,0 +1,147 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-11-16T00:00:00Z",
+  "title": "Design System: Tiffany Lyssa Portfolio",
+  "extensions": {
+    "colorMeta": {
+      "ink": {
+        "role": "primary",
+        "displayName": "Ink",
+        "canonical": "#141413",
+        "tonalRamp": ["oklch(15% 0.003 100)", "oklch(27% 0.003 100)", "oklch(38% 0.003 100)", "oklch(50% 0.003 100)", "oklch(61% 0.003 100)", "oklch(73% 0.003 100)", "oklch(84% 0.003 100)", "oklch(95% 0.002 100)"]
+      },
+      "paper": {
+        "role": "neutral",
+        "displayName": "Paper",
+        "canonical": "#fafaf8",
+        "tonalRamp": ["oklch(15% 0.003 100)", "oklch(27% 0.003 100)", "oklch(38% 0.003 100)", "oklch(50% 0.003 100)", "oklch(61% 0.003 100)", "oklch(73% 0.003 100)", "oklch(84% 0.003 100)", "oklch(95% 0.002 100)"]
+      },
+      "muted": {
+        "role": "neutral",
+        "displayName": "Grey",
+        "canonical": "#666668",
+        "tonalRamp": ["oklch(15% 0.003 286)", "oklch(27% 0.003 286)", "oklch(38% 0.003 286)", "oklch(50% 0.003 286)", "oklch(61% 0.003 286)", "oklch(73% 0.003 286)", "oklch(84% 0.003 286)", "oklch(95% 0.002 286)"]
+      },
+      "rule": {
+        "role": "neutral",
+        "displayName": "Hairline",
+        "canonical": "#dfdfda",
+        "tonalRamp": ["oklch(15% 0.004 107)", "oklch(27% 0.004 107)", "oklch(38% 0.004 107)", "oklch(50% 0.004 107)", "oklch(61% 0.004 107)", "oklch(73% 0.004 107)", "oklch(84% 0.004 107)", "oklch(95% 0.002 107)"]
+      }
+    },
+    "typographyMeta": {
+      "display": { "displayName": "Display", "purpose": "The name, once per page; the job title beneath it at the same size in weight 500 and Grey." },
+      "title": { "displayName": "Title", "purpose": "Project titles in the index, and the closing email link." },
+      "body": { "displayName": "Body", "purpose": "Everything that is read: bio, descriptions, row content, side headings (weight 500). Paragraphs capped at 54ch." },
+      "label": { "displayName": "Label", "purpose": "Metadata: dates, kinds, tool lists, navigation, the Sample marker, the footer." }
+    },
+    "shadows": [],
+    "motion": [
+      { "name": "ease-out", "value": "cubic-bezier(0.16, 1, 0.3, 1)", "purpose": "The one easing curve for the load draw, the settle, the link underline and the project entry opening." },
+      { "name": "draw", "value": "scaleX(0) to 1 from the left, 0.9s, once on load", "purpose": "Section and footer rules draw in. Only without prefers-reduced-motion." },
+      { "name": "settle", "value": "opacity 0.4 to 1 and translateY(10px) to 0, 0.8s, second block delayed 120ms", "purpose": "Hero text settles as the rules draw. Only without prefers-reduced-motion." },
+      { "name": "link-underline", "value": "background-size 0 to 100% of a 1px line, 0.35s", "purpose": "Underline draws from the left on hover and keyboard focus." },
+      { "name": "entry-open", "value": "height 0 to auto, 0.4s", "purpose": "Project entry eases open where ::details-content is supported. Only without prefers-reduced-motion." },
+      { "name": "plus-turn", "value": "rotate(45deg), 300ms", "purpose": "The plus on a project entry turns to a cross when open." }
+    ],
+    "breakpoints": [
+      { "name": "sm", "value": "640px" },
+      { "name": "md", "value": "768px" }
+    ]
+  },
+  "components": [
+    {
+      "name": "Link",
+      "kind": "custom",
+      "refersTo": "link",
+      "description": "Ink text whose 1px underline draws from the left on hover and focus; external links carry the arrow.",
+      "html": "<a class=\"ds-link-tap\" href=\"#\"><span class=\"ds-link\">GitHub</span><svg class=\"ds-arrow\" aria-hidden=\"true\" viewBox=\"0 0 12 12\"><path d=\"M3 9l6-6M4 3h5v5\"/></svg></a>",
+      "css": ".ds-link-tap { display: inline-flex; align-items: center; min-height: 44px; font-family: var(--font-schibsted), sans-serif; font-size: 18px; color: var(--color-ink, #141413); text-decoration: none; } .ds-link { background: linear-gradient(currentColor, currentColor) 0 100% / 0 1px no-repeat; transition: background-size 0.35s cubic-bezier(0.16, 1, 0.3, 1); } .ds-link-tap:hover .ds-link, .ds-link-tap:focus-visible .ds-link { background-size: 100% 1px; } .ds-link-tap:focus-visible { outline: 2px solid var(--color-ink, #141413); outline-offset: 3px; } .ds-arrow { width: 12px; height: 12px; margin-left: 6px; fill: none; stroke: currentColor; stroke-width: 1.25; }"
+    },
+    {
+      "name": "Navigation",
+      "kind": "nav",
+      "refersTo": "nav-link",
+      "description": "Header: monogram left, section links in grey, email link right.",
+      "html": "<header class=\"ds-nav\"><a class=\"ds-nav-mark\" href=\"#\">TL</a><nav class=\"ds-nav-links\"><a href=\"#\">Projects</a><a href=\"#\">Skills</a><a href=\"#\">Writing</a></nav><a class=\"ds-nav-mail\" href=\"#\"><span>Email Tiffany</span></a></header>",
+      "css": ".ds-nav { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; column-gap: 32px; padding: 20px 24px; font-family: var(--font-schibsted), sans-serif; font-size: 18px; color: var(--color-ink, #141413); background: var(--color-paper, #fafaf8); } .ds-nav a { display: inline-flex; align-items: center; min-height: 44px; color: inherit; text-decoration: none; } .ds-nav a:focus-visible { outline: 2px solid var(--color-ink, #141413); outline-offset: 3px; } .ds-nav-mark { font-weight: 600; letter-spacing: -0.02em; } .ds-nav-links { display: flex; column-gap: 24px; font-size: 14px; } .ds-nav-links a { color: var(--color-muted, #666668); transition: color 0.15s; } .ds-nav-links a:hover { color: var(--color-ink, #141413); } .ds-nav-mail span { background: linear-gradient(currentColor, currentColor) 0 100% / 0 1px no-repeat; transition: background-size 0.35s cubic-bezier(0.16, 1, 0.3, 1); } .ds-nav-mail:hover span, .ds-nav-mail:focus-visible span { background-size: 100% 1px; }"
+    },
+    {
+      "name": "Section",
+      "kind": "custom",
+      "refersTo": "section-heading",
+      "description": "Hairline rule, then a side heading in a 200px column with content beside it.",
+      "html": "<section class=\"ds-section\"><div class=\"ds-section-rule\"></div><div class=\"ds-section-grid\"><h2>Education</h2><div>BS Computer Science</div></div></section>",
+      "css": ".ds-section { font-family: var(--font-schibsted), sans-serif; font-size: 18px; color: var(--color-ink, #141413); background: var(--color-paper, #fafaf8); } .ds-section-rule { height: 1px; background: var(--color-rule, #dfdfda); transform-origin: left; } .ds-section-grid { display: grid; grid-template-columns: 200px 1fr; column-gap: 40px; padding: 56px 0; } .ds-section-grid h2 { margin: 0; font-size: 18px; font-weight: 500; } @media (prefers-reduced-motion: no-preference) { .ds-section-rule { animation: ds-draw 0.9s cubic-bezier(0.16, 1, 0.3, 1) both; } } @keyframes ds-draw { from { transform: scaleX(0); } }"
+    },
+    {
+      "name": "Row",
+      "kind": "custom",
+      "refersTo": "row",
+      "description": "A ruled line of content: title, grey secondary part, date on the right in tabular figures.",
+      "html": "<ul class=\"ds-rows\"><li><span><b>Certificate name</b> <i>Issuing organisation</i></span><time>2025</time></li><li><span><b>Award or programme</b> <i>Organiser</i></span><time>2024</time></li></ul>",
+      "css": ".ds-rows { margin: 0; padding: 0; list-style: none; font-family: var(--font-schibsted), sans-serif; font-size: 18px; color: var(--color-ink, #141413); background: var(--color-paper, #fafaf8); } .ds-rows li { display: flex; align-items: baseline; justify-content: space-between; column-gap: 24px; padding: 16px 0; border-bottom: 1px solid var(--color-rule, #dfdfda); } .ds-rows li:first-child { padding-top: 0; } .ds-rows li:last-child { padding-bottom: 0; border-bottom: 0; } .ds-rows b { font-weight: 500; margin-right: 12px; } .ds-rows i { font-style: normal; color: var(--color-muted, #666668); } .ds-rows time { font-size: 14px; color: var(--color-muted, #666668); font-variant-numeric: tabular-nums; }"
+    },
+    {
+      "name": "Project Entry",
+      "kind": "custom",
+      "refersTo": "project-entry",
+      "description": "One entry of the exclusive project index; entries share a name so opening one closes the others.",
+      "html": "<div class=\"ds-index\"><details class=\"ds-entry\" name=\"ds-projects\" open><summary><span class=\"ds-entry-title\">Clinic queue board</span><span class=\"ds-entry-meta\"><span>Team project</span><span>2026</span><svg aria-hidden=\"true\" viewBox=\"0 0 12 12\"><path d=\"M6 1v10M1 6h10\"/></svg></span></summary><div class=\"ds-entry-body\"><p>A waiting-room screen and staff page for a small clinic.</p><p class=\"ds-entry-tools\">Next.js, PostgreSQL, WebSockets</p></div></details><details class=\"ds-entry\" name=\"ds-projects\"><summary><span class=\"ds-entry-title\">Bus fare calculator</span><span class=\"ds-entry-meta\"><span>Hackathon project</span><span>2025</span><svg aria-hidden=\"true\" viewBox=\"0 0 12 12\"><path d=\"M6 1v10M1 6h10\"/></svg></span></summary><div class=\"ds-entry-body\"><p>Type a start and an end stop and get the fare.</p><p class=\"ds-entry-tools\">React, FastAPI, Python</p></div></details></div>",
+      "css": ".ds-index { border-top: 1px solid var(--color-ink, #141413); font-family: var(--font-schibsted), sans-serif; font-size: 18px; color: var(--color-ink, #141413); background: var(--color-paper, #fafaf8); } .ds-entry { border-bottom: 1px solid var(--color-rule, #dfdfda); } .ds-entry:last-child { border-bottom: 0; } .ds-entry summary { display: flex; align-items: center; justify-content: space-between; column-gap: 24px; padding: 24px 0; cursor: pointer; list-style: none; } .ds-entry summary::-webkit-details-marker { display: none; } .ds-entry summary:focus-visible { outline: 2px solid var(--color-ink, #141413); outline-offset: 3px; } .ds-entry-title { font-size: clamp(1.5rem, 3.4vw, 2.25rem); line-height: 1.25; font-weight: 500; letter-spacing: -0.02em; color: var(--color-muted, #666668); transition: color 0.15s; } .ds-entry[open] .ds-entry-title, .ds-entry:hover .ds-entry-title { color: var(--color-ink, #141413); } .ds-entry-meta { display: flex; flex-shrink: 0; align-items: center; column-gap: 16px; font-size: 14px; color: var(--color-muted, #666668); font-variant-numeric: tabular-nums; } .ds-entry-meta svg { width: 12px; height: 12px; stroke: var(--color-ink, #141413); stroke-width: 1.25; transition: transform 0.3s; } .ds-entry[open] .ds-entry-meta svg { transform: rotate(45deg); } .ds-entry-body { display: grid; grid-template-columns: 1fr 232px; column-gap: 40px; padding-bottom: 36px; } .ds-entry-body p { margin: 0; max-width: 54ch; line-height: 1.6; } .ds-entry-body .ds-entry-tools { font-size: 14px; line-height: 1.43; color: var(--color-muted, #666668); }"
+    },
+    {
+      "name": "Sample Marker",
+      "kind": "custom",
+      "refersTo": "sample-marker",
+      "description": "The word Sample beside the heading of any group whose content is placeholder.",
+      "html": "<h2 class=\"ds-sample-heading\">Credentials <span class=\"ds-sample\">Sample</span></h2>",
+      "css": ".ds-sample-heading { display: flex; align-items: baseline; column-gap: 12px; margin: 0; font-family: var(--font-schibsted), sans-serif; font-size: 18px; font-weight: 500; color: var(--color-ink, #141413); } .ds-sample { font-size: 14px; font-weight: 400; color: var(--color-muted, #666668); }"
+    },
+    {
+      "name": "Notice Bar",
+      "kind": "custom",
+      "refersTo": "notice-bar",
+      "description": "Full-width ink bar above the header while any sample content remains.",
+      "html": "<p class=\"ds-notice\" role=\"note\">This page shows sample content. Replace it in src/app/content.ts.</p>",
+      "css": ".ds-notice { margin: 0; padding: 8px 24px; text-align: center; font-family: var(--font-schibsted), sans-serif; font-size: 14px; line-height: 1.43; background: var(--color-ink, #141413); color: var(--color-paper, #fafaf8); }"
+    }
+  ],
+  "narrative": {
+    "northStar": "The CV Sheet",
+    "overview": "The page is the document a recruiter already reads every day, a résumé, set with a typographer's care. It is one sheet of paper in one grotesk: side headings in a left column, content in ruled rows on the right, a name and two sentences at the top. Nothing sits on a surface above the page, because there is only the page.\n\nThe system is monochrome and minimalist by the owner's binding commitment. Hierarchy comes from four type sizes, three weights and the difference between ink and grey. Separation comes from hairline rules. Motion happens in two places only: the sheet's rules draw in from the left once on load, and links draw their underline on hover.",
+    "keyCharacteristics": [
+      "One typeface, four sizes, three weights (400, 500, 600).",
+      "Ink, grey, paper and a hairline; no hue anywhere.",
+      "Side headings left, ruled rows right, inside a 1040px sheet.",
+      "Flat: no cards, no shadows, no filled panels around content.",
+      "One project open at a time.",
+      "Placeholder content is marked as a sample wherever it appears."
+    ],
+    "rules": [
+      { "name": "The Ink Only Rule", "body": "No hue. Emphasis is ink against grey, weight, or size, never a colour. A link is ink with an underline that draws in, not a coloured word.", "section": "colors" },
+      { "name": "The Four Sizes Rule", "body": "14, 18, the title clamp and the name clamp. A fifth size is not available; rank within a size is carried by weight (500 against 400) and by ink against grey.", "section": "typography" },
+      { "name": "The Tabular Figures Rule", "body": "Years, dates and counts use tabular numerals so they align down a column of rows.", "section": "typography" },
+      { "name": "The Hairline Rule", "body": "Content is separated by a 1px line, never by a box. Rows carry a line beneath (none under the last); each section carries a line above; the project index opens with the one ink-coloured line on the page.", "section": "elevation" },
+      { "name": "The One Open Rule", "body": "In the project index exactly one entry is expanded at a time; opening another closes it.", "section": "components" },
+      { "name": "The Marked Sample Rule", "body": "Placeholder content is never shown unmarked. If it is not real, the group heading says \"Sample\".", "section": "components" }
+    ],
+    "dos": [
+      "Do set every surface in Schibsted Grotesk at one of the four sizes: 14px, 18px, the title clamp (24px to 36px) or the name clamp (40px to 56px).",
+      "Do separate content with 1px hairline rules and whitespace.",
+      "Do keep content inside the 1040px sheet, with side headings in the 200px column and secondary detail in the 232px right column.",
+      "Do cap reading text at 54ch.",
+      "Do put load animation, smooth scrolling and eased opening behind the reduced-motion check.",
+      "Do give links and navigation items a 44px minimum height and the 2px ink focus outline.",
+      "Do mark placeholder content with the Sample marker."
+    ],
+    "donts": [
+      "Don't introduce a hue, a tint or a gradient; the palette is ink, grey, paper and hairline.",
+      "Don't wrap content in cards, panels or shadows.",
+      "Don't add a fifth type size or a second typeface.",
+      "Don't add icons beyond the arrow and the plus.",
+      "Don't let more than one project entry stay open.",
+      "Don't add motion beyond the rules drawing in on load, the underline drawing on hover, and the entry easing open."
+    ]
+  }
+}

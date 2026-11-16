@@ -1,26 +1,87 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-paper: #fafaf8;
+  --color-ink: #141413;
+  --color-muted: #666668;
+  --color-rule: #dfdfda;
+  --font-sans: var(--font-schibsted);
 }
 
-@media (prefers-color-scheme: dark) {
+html {
+  background: var(--color-paper);
+  color: var(--color-ink);
+  scrollbar-color: #b9b9b4 var(--color-paper);
+  scroll-padding-top: 2rem;
+}
+
+::selection {
+  background: var(--color-ink);
+  color: var(--color-paper);
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-ink);
+  outline-offset: 3px;
+}
+
+/* Underline that draws from the left on hover. */
+.link {
+  background: linear-gradient(currentColor, currentColor) 0 100% / 0 1px no-repeat;
+  transition: background-size 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.link:hover,
+.link:focus-visible {
+  background-size: 100% 1px;
+}
+
+summary::-webkit-details-marker {
+  display: none;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  html {
+    scroll-behavior: smooth;
+  }
+
+  /* Project entries ease open where the browser supports it. */
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    interpolate-size: allow-keywords;
+  }
+  details::details-content {
+    height: 0;
+    overflow: clip;
+    transition:
+      height 0.4s cubic-bezier(0.16, 1, 0.3, 1),
+      content-visibility 0.4s allow-discrete;
+  }
+  details[open]::details-content {
+    height: auto;
+  }
+
+  /* The one load moment: the sheet's rules draw in, then the text settles. */
+  .draw {
+    transform-origin: left;
+    animation: draw 0.9s cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+  .settle {
+    animation: settle 0.8s cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+  /* Rules below the fold draw as they scroll into view; browsers without view timelines draw them on load. */
+  .draw-view {
+    animation-timeline: view();
+    animation-range: entry 0% cover 30%;
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+@keyframes draw {
+  from {
+    transform: scaleX(0);
+  }
+}
+@keyframes settle {
+  from {
+    opacity: 0.4;
+    transform: translateY(10px);
+  }
 }
