@@ -1,5 +1,14 @@
 import type { ReactNode } from "react";
+import DecryptedText from "@/components/DecryptedText";
 import { content } from "./content";
+import {
+  ContactCard,
+  CredentialFolder,
+  HeroWall,
+  ProjectSphere,
+  SkillsLoop,
+  WritingDeck,
+} from "./sections";
 
 // Type scale: four sizes only. text-sm (meta), text-lg (text), `title`, `display`.
 const wrap = "mx-auto w-full max-w-[1040px] px-6";
@@ -52,7 +61,7 @@ function Section(props: { id: string; title: string; children: ReactNode }) {
           {props.title}
           <Sample />
         </h2>
-        <div>{props.children}</div>
+        <div className="min-w-0">{props.children}</div>
       </div>
     </section>
   );
@@ -141,11 +150,17 @@ export default function Home() {
 
       <main id="main" className={wrap}>
         <section
-          className={`grid gap-x-10 gap-y-12 pt-[clamp(3rem,16vh,9rem)] pb-[clamp(4rem,14vh,8rem)] ${cols}`}
+          className={`grid gap-x-10 gap-y-12 pt-[clamp(3rem,16vh,9rem)] pb-[clamp(4rem,14vh,8rem)] md:grid-cols-[1fr_400px] md:items-center`}
         >
           <div className="settle">
             <h1 className="text-[clamp(2.5rem,6vw,3.5rem)] leading-[1.05] font-semibold tracking-[-0.03em]">
-              {content.name}
+              <DecryptedText
+                text={content.name}
+                animateOn="view"
+                sequential
+                speed={45}
+                encryptedClassName="text-muted"
+              />
               <span className="block font-medium text-muted">
                 {content.title}
               </span>
@@ -156,13 +171,7 @@ export default function Home() {
             <p className="mt-3">
               <Sample />
             </p>
-          </div>
-
-          <dl className="settle border-rule [animation-delay:120ms] md:-ml-7 md:border-l md:pl-7">
-            <dt className="flex items-baseline gap-3 text-sm text-muted">
-              Connect <Sample />
-            </dt>
-            <dd className="mt-1 mb-7 flex flex-col items-start">
+            <p className="mt-6 flex flex-wrap items-center gap-x-7">
               {content.links.map((l) => (
                 <a
                   key={l.label}
@@ -175,12 +184,11 @@ export default function Home() {
                   <Arrow />
                 </a>
               ))}
-            </dd>
-            <dt className="flex items-baseline gap-3 text-sm text-muted">
-              Status <Sample />
-            </dt>
-            <dd className="mt-2 leading-snug">{content.status}</dd>
-          </dl>
+            </p>
+            <p className="mt-1 text-muted">{content.status}</p>
+          </div>
+
+          <HeroWall />
         </section>
 
         <section
@@ -199,11 +207,12 @@ export default function Home() {
             </span>
           </h2>
           <div className="draw h-px bg-ink" />
+          <ProjectSphere />
+          <div className="h-px bg-rule" />
           {content.projects.map((p, i) => (
             <details
               key={p.title}
               name="projects"
-              open={i === 0}
               className="group border-b border-rule last:border-b-0"
             >
               <summary className="flex cursor-pointer list-none items-center justify-between gap-6 py-6">
@@ -250,6 +259,9 @@ export default function Home() {
         </section>
 
         <Section id="skills" title="Skills">
+          <div className="mb-10">
+            <SkillsLoop />
+          </div>
           <dl>
             {content.skills.map((s) => (
               <div key={s.group} className={`${row} sm:flex-row-reverse`}>
@@ -266,28 +278,11 @@ export default function Home() {
 
         <Section id="credentials" title="Credentials">
           <Rows items={content.credentials} />
+          <CredentialFolder />
         </Section>
 
         <Section id="writing" title="Writing">
-          <ul>
-            {content.writing.map((w) => (
-              <li key={w.title} className={row}>
-                <span className="block max-w-[54ch]">
-                  {w.href ? (
-                    <a href={w.href} className="link font-medium">
-                      {w.title}
-                    </a>
-                  ) : (
-                    <span className="font-medium">{w.title}</span>
-                  )}
-                  <span className="mt-1 block text-muted">{w.summary}</span>
-                </span>
-                <span className="block shrink-0 text-sm text-muted tabular-nums">
-                  {w.when}
-                </span>
-              </li>
-            ))}
-          </ul>
+          <WritingDeck />
         </Section>
 
         <Section id="github" title="GitHub">
@@ -310,10 +305,13 @@ export default function Home() {
         </Section>
 
         <Section id="contact" title="Contact">
-          <a href={mail} className={`${title} inline-flex items-center`}>
-            <span className="link">Email {firstName}</span>
-          </a>
-          <p className="mt-3 max-w-[54ch] text-muted">{content.status}.</p>
+          <ContactCard />
+          <p className="mt-4 text-muted">
+            Or write to her directly:{" "}
+            <a href={mail} className="link text-ink">
+              Email {firstName}
+            </a>
+          </p>
         </Section>
       </main>
 

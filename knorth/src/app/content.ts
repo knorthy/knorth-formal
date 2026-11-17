@@ -16,6 +16,7 @@ export const content = {
     {
       title: "Clinic queue board",
       kind: "Team project",
+      image: "/samples/p1.svg",
       year: "2026",
       description:
         "A waiting-room screen and staff page for a small clinic. Patients see their place in line; staff call the next number from a phone.",
@@ -25,6 +26,7 @@ export const content = {
     {
       title: "Bus fare calculator",
       kind: "Hackathon project",
+      image: "/samples/p2.svg",
       year: "2025",
       description:
         "Type a start and an end stop and get the fare, the transfers and the travel time for each route between them.",
@@ -34,6 +36,7 @@ export const content = {
     {
       title: "Thesis reference manager",
       kind: "Personal project",
+      image: "/samples/p3.svg",
       year: "2025",
       description:
         "Keeps papers, notes and citations for one thesis in a single searchable list, and exports the bibliography in the required format.",
@@ -43,6 +46,7 @@ export const content = {
     {
       title: "Dorm laundry tracker",
       kind: "Personal project",
+      image: "/samples/p4.svg",
       year: "2024",
       description:
         "Shows which washers are free in a dormitory and sends a message when a load is done.",
