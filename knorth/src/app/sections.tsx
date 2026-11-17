@@ -2,9 +2,10 @@
 
 // The interactive pieces of the page. Each wraps one reusable component from
 // src/components and feeds it the portfolio's content in the page's ink and paper.
-import { useSyncExternalStore } from "react";
+import { useRef, useState, useSyncExternalStore } from "react";
 import DriftWall from "@/components/DriftWall";
-import InfiniteMenu from "@/components/InfiniteMenu";
+import CardSwap, { type CardSwapHandle } from "@/components/CardSwap";
+import SlingButton from "@/components/SlingButton";
 import LogoLoop from "@/components/LogoLoop";
 import type { IconType } from "react-icons";
 import {
@@ -79,28 +80,69 @@ export function HeroWall() {
   );
 }
 
-const sphereItems = content.projects.map((p) => ({
-  image: p.image,
-  title: p.title,
-  description: p.description,
-  link: p.href || undefined,
-}));
+const deckItems = content.projects.map((p) => ({ image: p.image, title: p.title, alt: p.title }));
 
-export function ProjectSphere() {
+// Projects as a stack of tilted cards (the Claro landing layout): the front card's project is written
+// out on the left; the deck swaps on its own, on drag, or with the button.
+export function ProjectDeck() {
   const theme = useTheme();
   const c = PALETTE[theme];
+  const deck = useRef<CardSwapHandle>(null);
+  const [index, setIndex] = useState(0);
+  const p = content.projects[index];
+  const count = (n: number) => String(n).padStart(2, "0");
+
   return (
-    <div className="relative h-[420px] md:h-[560px]">
-      <InfiniteMenu
-        items={sphereItems}
-        count={90}
-        roundness={0.06}
-        autoplay={5}
-        dim={0.35}
-        zoom={1.1}
-        theme={theme}
-        accentColor={c.ink}
-      />
+    <div className="grid items-center gap-x-10 gap-y-10 py-10 md:grid-cols-[1fr_1.15fr] md:py-16">
+      <div key={index} className="settle min-w-0" aria-live="polite">
+        <p className="font-mono text-sm text-muted tabular-nums">
+          {count(index + 1)} / {count(content.projects.length)}
+        </p>
+        <h3 className="mt-3 text-[clamp(2rem,5vw,3.25rem)] leading-[1.05] tracking-[-0.02em]">{p.title}</h3>
+        <p className="mt-2 text-sm text-muted">{p.kind}</p>
+        <p className="mt-6 max-w-[48ch] leading-[1.6] text-pretty text-muted">{p.description}</p>
+        <p className="mt-4 text-sm">{p.tools}</p>
+        <div className="mt-8 flex flex-wrap items-center gap-x-10 gap-y-6">
+          {/* Learn more asks Kniah about this project (see ChatWidget's "kniah:ask" listener) */}
+          <button
+            type="button"
+            onClick={() =>
+              window.dispatchEvent(new CustomEvent("kniah:ask", { detail: `tell me more about ${p.title}` }))
+            }
+            className="inline-flex min-h-11 cursor-pointer items-center text-sm"
+          >
+            <span className="link">Learn more</span>
+            <span aria-hidden className="ml-1.5">&rarr;</span>
+          </button>
+          <span className="flex items-center gap-4">
+            <SlingButton
+              onSend={() => deck.current?.next()}
+              ariaLabel="Next project"
+              padColor={c.ink}
+              iconColor={c.paper}
+              accentColor={c.ink}
+              wellColor={c.well}
+              bandColor={c.band}
+            />
+            <span className="text-sm text-muted">Pull and let go for the next one</span>
+          </span>
+        </div>
+      </div>
+      <div className="h-[360px] min-w-0 [&_img]:grayscale sm:h-[500px] md:-mr-24">
+        <CardSwap
+          ref={deck}
+          items={deckItems}
+          width={640}
+          height={440}
+          cardDistance={56}
+          verticalDistance={62}
+          skewAmount={6}
+          delay={5000}
+          cardRadius={6}
+          theme={theme}
+          onChange={setIndex}
+        />
+      </div>
     </div>
   );
 }
@@ -148,12 +190,21 @@ const LOGOS: Record<string, IconType> = {
   "KadaKareer x Home Credit": TbTrophy,
 };
 
-// Sizes follow immanbufi.dev: 12px heading, 11px issuer, 17px title, 14px subtitle, 12px date.
-function Entry(props: { Logo: IconType; label?: string; title: string; sub?: string; when?: string }) {
+// Laid out like immanbufi.dev: 12px column heading over a hairline, then entries led by a 120px logo,
+// an 11px issuer, the title, a subtitle, a 12px date and an optional link. Two credentials show up
+// front; "View all credentials" opens the rest in place.
+function Entry(props: {
+  Logo: IconType;
+  label?: string;
+  title: string;
+  sub?: string;
+  when?: string;
+  href?: string;
+}) {
   return (
-    <li className="flex gap-[18px]">
-      <span className="flex w-24 shrink-0 items-start text-ink">
-        <props.Logo aria-hidden size={56} />
+    <li className="flex gap-6">
+      <span className="flex w-[120px] shrink-0 items-center justify-start self-start pt-1 text-ink">
+        <props.Logo aria-hidden size={72} />
       </span>
       <span className="min-w-0">
         {props.label && (
@@ -161,12 +212,22 @@ function Entry(props: { Logo: IconType; label?: string; title: string; sub?: str
             {props.label}
           </span>
         )}
-        <span className="block text-[17px] leading-tight font-semibold tracking-[-0.02em]">
+        <span className="mt-1 block font-pixel text-[clamp(1.0625rem,1.6vw,1.375rem)] leading-tight tracking-[-0.02em]">
           {props.title}
         </span>
-        {props.sub && <span className="mt-1 block text-sm text-muted">{props.sub}</span>}
+        {props.sub && <span className="mt-1.5 block text-sm text-muted">{props.sub}</span>}
         {props.when && (
           <span className="mt-2 block font-mono text-xs text-muted tabular-nums">{props.when}</span>
+        )}
+        {props.href && (
+          <a
+            href={props.href}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="mt-4 inline-flex min-h-11 items-center text-sm text-muted transition-colors hover:text-ink"
+          >
+            View credential<span aria-hidden>&#8599;</span>
+          </a>
         )}
       </span>
     </li>
@@ -174,10 +235,12 @@ function Entry(props: { Logo: IconType; label?: string; title: string; sub?: str
 }
 
 export function CredentialsGrid() {
+  const [all, setAll] = useState(false);
   const head =
-    "mb-7 border-b border-rule pb-3.5 text-xs font-medium tracking-[0.08em] text-muted uppercase";
+    "mb-7 border-b border-rule pb-3.5 font-sans text-xs font-medium tracking-[0.08em] text-muted uppercase";
+  const shown = all ? content.credentials : content.credentials.slice(0, 2);
   return (
-    <div className="grid gap-x-10 gap-y-12 md:grid-cols-2">
+    <div className="grid gap-x-16 gap-y-12 md:grid-cols-2">
       <div>
         <h3 className={head}>Education</h3>
         <ul className="flex flex-col gap-12">
@@ -188,11 +251,33 @@ export function CredentialsGrid() {
       </div>
       <div>
         <h3 className={head}>Recognition &amp; credentials</h3>
-        <ul className="flex flex-col gap-12">
-          {content.credentials.map((c) => (
-            <Entry key={c.title} Logo={LOGOS[c.org] ?? TbTrophy} label={c.org} title={c.title} when={c.when} />
+        <ul id="credential-list" className="flex flex-col gap-12">
+          {shown.map((c) => (
+            <Entry
+              key={c.title}
+              Logo={LOGOS[c.org] ?? TbTrophy}
+              label={c.org}
+              title={c.title}
+              sub={"sub" in c ? c.sub : undefined}
+              when={c.when && `Issued ${c.when}`}
+              href={"href" in c ? (c.href as string) : undefined}
+            />
           ))}
         </ul>
+        {content.credentials.length > 2 && (
+          <button
+            type="button"
+            aria-expanded={all}
+            aria-controls="credential-list"
+            onClick={() => setAll((v) => !v)}
+            className="mt-8 inline-flex min-h-11 cursor-pointer items-center text-sm text-muted transition-colors hover:text-ink"
+          >
+            {all ? "Show fewer" : "View all credentials"}
+            <span aria-hidden className="ml-1">
+              {all ? "↑" : "→"}
+            </span>
+          </button>
+        )}
       </div>
     </div>
   );

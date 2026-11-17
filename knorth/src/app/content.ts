@@ -108,9 +108,10 @@ export const content = {
   education: [
     { title: "BS Computer Science", org: "Cavite State University", when: "" },
   ],
-  // Dates are only filled in where they are known.
+  // Dates are only filled in where they are known. The first two are shown up front; add `href`
+  // (a credential URL) to show a "View credential" link.
   credentials: [
-    { title: "AI in UX for FinTech Hackathon, Champion", org: "KadaKareer x Home Credit", when: "Dec 2025" },
+    { title: "AI in UX for FinTech Hackathon", sub: "Champion", org: "KadaKareer x Home Credit", when: "Dec 2025" },
     { title: "Mechatronics Servicing NC II", org: "TESDA", when: "2026" },
     { title: "Introduction to Cybersecurity", org: "Cisco", when: "" },
     { title: "Cyber Threat Management", org: "Cisco", when: "" },

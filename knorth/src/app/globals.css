@@ -6,10 +6,12 @@
   --color-paper: #fafaf8;
   --color-ink: #141413;
   --color-muted: #666668;
-  --color-rule: #dfdfda;
+  --color-rule: #ecece8;
 }
 @theme inline {
-  --font-sans: var(--font-schibsted);
+  --font-sans: var(--font-geist-mono);
+  --font-mono: var(--font-geist-mono);
+  --font-pixel: var(--font-geist-pixel);
 }
 
 /* Dark mode is the same sheet with ink and paper traded. Keep in step with PALETTE in sections.tsx. */
@@ -17,7 +19,7 @@
   --color-paper: #141413;
   --color-ink: #ededea;
   --color-muted: #a3a39e;
-  --color-rule: #30302e;
+  --color-rule: #232321;
   color-scheme: dark;
 }
 
@@ -26,6 +28,15 @@ html {
   color: var(--color-ink);
   scrollbar-color: color-mix(in oklab, var(--color-ink) 28%, var(--color-paper)) var(--color-paper);
   scroll-padding-top: 2rem;
+}
+
+/* Headings in the pixel font. It has one weight, so never fake a bold. */
+h1,
+h2,
+h3,
+.font-pixel {
+  font-family: var(--font-geist-pixel), var(--font-geist-mono), monospace;
+  font-synthesis-weight: none;
 }
 
 ::selection {

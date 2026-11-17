@@ -225,6 +225,22 @@ export default function ChatWidget() {
     render();
   };
 
+  // Other parts of the page can ask on the visitor's behalf, e.g. a project's "Learn more"
+  const askRef = useRef(ask);
+  useEffect(() => {
+    askRef.current = ask;
+  });
+  useEffect(() => {
+    const onAsk = (e: Event) => {
+      const question = (e as CustomEvent<string>).detail;
+      if (!question) return;
+      openAsk();
+      setTimeout(() => askRef.current(question), 300);
+    };
+    window.addEventListener("kniah:ask", onAsk);
+    return () => window.removeEventListener("kniah:ask", onAsk);
+  }, [openAsk]);
+
   const toggle = () => {
     if (open) { close(); return; }
     setHop((h) => h + 1);

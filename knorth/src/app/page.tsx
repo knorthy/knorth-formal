@@ -5,7 +5,7 @@ import {
   ContactFooter,
   CredentialsGrid,
   HeroWall,
-  ProjectSphere,
+  ProjectDeck,
   SkillsLoop,
   ThemeToggle,
 } from "./sections";
@@ -14,12 +14,8 @@ import ChatWidget from "@/components/chat/ChatWidget";
 // Type scale: four sizes only. text-sm (meta), text-lg (text), `title`, `display`.
 const wrap = "mx-auto w-full max-w-[1040px] px-6";
 const tap = "inline-flex min-h-11 items-center";
-const title =
-  "text-[clamp(1.5rem,3.4vw,2.25rem)] leading-tight font-medium tracking-[-0.02em]";
 const row =
   "border-b border-rule py-4 first:pt-0 last:border-b-0 last:pb-0 sm:flex sm:items-baseline sm:justify-between sm:gap-x-6";
-// Right-hand column shared by the hero side column and the open project.
-const cols = "md:grid-cols-[1fr_232px]";
 
 const sections = [
   "Projects",
@@ -144,7 +140,7 @@ export default function Home() {
             <h1 className="text-[clamp(2.5rem,6vw,3.5rem)] leading-[1.05] font-semibold tracking-[-0.03em]">
               <DecryptedText
                 text={content.name}
-                animateOn="view"
+                animateOn="inViewHover"
                 sequential
                 speed={45}
                 encryptedClassName="text-muted"
@@ -194,57 +190,10 @@ export default function Home() {
               {content.projects.length}
             </span>
           </h2>
-          <div className="draw h-px bg-ink" />
-          <ProjectSphere />
+          <div className="draw h-px bg-rule" />
+          <ProjectDeck />
           <div className="h-px bg-rule" />
-          {content.projects.map((p, i) => (
-            <details
-              key={p.title}
-              name="projects"
-              className="group border-b border-rule last:border-b-0"
-            >
-              <summary className="flex cursor-pointer list-none items-center justify-between gap-6 py-6">
-                <span
-                  className={`${title} text-muted transition-colors group-open:text-ink group-hover:text-ink`}
-                >
-                  {p.title}
-                </span>
-                <span className="flex shrink-0 items-center gap-4 text-sm text-muted">
-                  <span className="hidden sm:inline">{p.kind}</span>
-                  <span className="tabular-nums">{p.year}</span>
-                  <svg
-                    aria-hidden
-                    viewBox="0 0 12 12"
-                    className="size-3 stroke-ink transition-transform duration-300 group-open:rotate-45"
-                    strokeWidth="1.25"
-                  >
-                    <path d="M6 1v10M1 6h10" />
-                  </svg>
-                </span>
-              </summary>
-              <div className={`grid gap-x-10 gap-y-4 pb-9 ${cols}`}>
-                <p className="max-w-[54ch] leading-[1.6] text-pretty">
-                  {p.description}
-                </p>
-                <div className="flex flex-col items-start gap-1 text-sm text-muted">
-                  <p className="sm:hidden">{p.kind}</p>
-                  <p>{p.tools}</p>
-                  {p.href && (
-                    <a
-                      href={p.href}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className={`${tap} text-lg text-ink`}
-                    >
-                      <span className="link">Visit project</span>
-                      <Arrow />
-                    </a>
-                  )}
-                </div>
-              </div>
-            </details>
-          ))}
-          <h3 className="mt-10 mb-4 text-sm text-muted">Also built</h3>
+          <h3 className="mt-10 mb-4 font-sans text-sm text-muted">Also built</h3>
           <Rows items={content.more} />
         </section>
 
@@ -264,7 +213,7 @@ export default function Home() {
 
         <Section id="experience" title="Experience">
           <Rows items={content.experience} />
-          <h3 className="mt-10 mb-4 text-sm text-muted">Leadership and volunteering</h3>
+          <h3 className="mt-10 mb-4 font-sans text-sm text-muted">Leadership and volunteering</h3>
           <Rows items={content.leadership} />
         </Section>
 
