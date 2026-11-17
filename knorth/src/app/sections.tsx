@@ -2,6 +2,7 @@
 
 // The interactive pieces of the page. Each wraps one reusable component from
 // src/components and feeds it the portfolio's content in the page's ink and paper.
+import dynamic from "next/dynamic";
 import { useRef, useState, useSyncExternalStore } from "react";
 import DriftWall from "@/components/DriftWall";
 import CardSwap, { type CardSwapHandle } from "@/components/CardSwap";
@@ -52,7 +53,6 @@ export function ThemeToggle({ className }: { className?: string }) {
   );
 }
 
-const wallItems = content.projects.map((p) => ({ image: p.image, title: p.title }));
 
 // Design and build work drifting past under Experience: the gallery plus every project image.
 const galleryItems = [
@@ -85,27 +85,26 @@ export function GalleryWall() {
   );
 }
 
-// Decorative backdrop: `inert` keeps its many repeated tiles out of the tab order.
-export function HeroWall() {
-  const theme = useTheme();
-  const c = PALETTE[theme];
+// The hero's ID card on a lanyard: drag, stretch and throw it; click to flip it to the back.
+// Three.js only runs in the browser, so it loads client-side.
+const Lanyard = dynamic(() => import("@/components/Lanyard"), { ssr: false });
+
+export function HeroLanyard() {
   return (
-    <div inert aria-hidden className="h-[300px] md:h-[440px]">
-      <DriftWall
-        items={wallItems}
-        columns={3}
-        tileWidth={170}
-        tileHeight={113}
-        gap={14}
-        radius={2}
-        tilt={14}
-        turn={-16}
-        speed={22}
-        parallax={0}
-        fade={0.55}
-        dim={0.9}
+    // Reaches up through the hero's top padding so the strap hangs from just under the header.
+    <div className="-mt-12 h-[480px] md:-mt-[clamp(3rem,16vh,9rem)] md:h-[760px]">
+      <Lanyard
+        frontImage="/lanyard/front.webp"
+        backImage="/lanyard/back.svg"
+        strapImage="/lanyard/strap.svg"
+        imageFit="contain"
+        cardColor="#fafaf8"
+        strapColor="#141413"
+        metal="graphite"
+        finish="glossy"
+        size={0.46}
+        strapLength={0.55}
         grayscale
-        overlayColor={c.paper}
       />
     </div>
   );
@@ -232,7 +231,7 @@ const LOGOS: Record<string, IconType> = {
 // an 11px issuer, the title, a subtitle, a 12px date and an optional link. Two credentials show up
 // front; "View all credentials" opens the rest in place.
 function Entry(props: {
-  Logo: IconType;
+  Logo?: IconType;
   label?: string;
   title: string;
   sub?: string;
@@ -241,9 +240,11 @@ function Entry(props: {
 }) {
   return (
     <li className="flex gap-6">
-      <span className="flex w-[120px] shrink-0 items-center justify-start self-start pt-1 text-ink">
-        <props.Logo aria-hidden size={72} />
-      </span>
+      {props.Logo && (
+        <span className="flex w-[120px] shrink-0 items-center justify-start self-start pt-1 text-ink">
+          <props.Logo aria-hidden size={72} />
+        </span>
+      )}
       <span className="min-w-0">
         {props.label && (
           <span className="block font-mono text-[11px] leading-snug tracking-[0.08em] text-muted uppercase">
@@ -272,10 +273,31 @@ function Entry(props: {
   );
 }
 
+const head =
+  "mb-7 border-b border-rule pb-3.5 font-sans text-xs font-medium tracking-[0.08em] text-muted uppercase";
+
+// Same column style as the credentials, text only: work on the left, leadership and volunteering right.
+export function ExperienceGrid() {
+  const column = (title: string, items: { title: string; org: string; sub?: string; when: string }[]) => (
+    <div>
+      <h3 className={head}>{title}</h3>
+      <ul className="flex flex-col gap-10">
+        {items.map((e) => (
+          <Entry key={`${e.title}-${e.org}`} label={e.org} title={e.title} sub={e.sub} when={e.when} />
+        ))}
+      </ul>
+    </div>
+  );
+  return (
+    <div className="grid gap-x-16 gap-y-12 md:grid-cols-2">
+      {column("Work experience", content.experience)}
+      {column("Leadership & volunteering", content.leadership)}
+    </div>
+  );
+}
+
 export function CredentialsGrid() {
   const [all, setAll] = useState(false);
-  const head =
-    "mb-7 border-b border-rule pb-3.5 font-sans text-xs font-medium tracking-[0.08em] text-muted uppercase";
   const shown = all ? content.credentials : content.credentials.slice(0, 2);
   return (
     <div className="grid gap-x-16 gap-y-12 md:grid-cols-2">

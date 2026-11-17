@@ -2,8 +2,8 @@
 // anything the portfolio doesn't already show. Edit src/app/content.ts, not this.
 import { content as c } from "@/app/content";
 
-const list = (items: { title: string; org: string; when: string }[]) =>
-  items.map((i) => `- ${i.title}, ${i.org}${i.when ? `, ${i.when}` : ""}`).join("\n");
+const list = (items: { title: string; org: string; when: string; sub?: string }[]) =>
+  items.map((i) => `- ${i.title}, ${i.org}${i.sub ? ` (${i.sub})` : ""}${i.when ? `, ${i.when}` : ""}`).join("\n");
 
 function facts(): string {
   const links = c.links.map((l) => `${l.label} ${l.href}`).join(", ");

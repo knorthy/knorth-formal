@@ -4,8 +4,9 @@ import { content } from "./content";
 import {
   ContactFooter,
   CredentialsGrid,
+  ExperienceGrid,
   GalleryWall,
-  HeroWall,
+  HeroLanyard,
   ProjectDeck,
   SkillsLoop,
   ThemeToggle,
@@ -173,7 +174,7 @@ export default function Home() {
             <p className="mt-1 text-muted">{content.status}</p>
           </div>
 
-          <HeroWall />
+          <HeroLanyard />
         </section>
 
         <section
@@ -212,11 +213,12 @@ export default function Home() {
           </dl>
         </Section>
 
-        <Section id="experience" title="Experience">
-          <Rows items={content.experience} />
-          <h3 className="mt-10 mb-4 font-sans text-sm text-muted">Leadership and volunteering</h3>
-          <Rows items={content.leadership} />
-        </Section>
+        <section id="experience" aria-label="Experience">
+          <div className="draw draw-view h-px bg-rule" />
+          <div className="py-14 md:py-20">
+            <ExperienceGrid />
+          </div>
+        </section>
 
         {/* Heading and line keep the side-heading grid; the wall itself spans the whole sheet. */}
         <section id="gallery" aria-labelledby="gallery-title">

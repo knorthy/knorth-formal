@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="640" height="900" viewBox="0 0 640 900">
+  <rect width="640" height="900" fill="#fafaf8"/>
+  <g font-family="ui-monospace, Menlo, Consolas, monospace" fill="#141413">
+    <text x="56" y="560" font-size="64" font-weight="700" letter-spacing="-1">TIFFANY</text>
+    <text x="56" y="630" font-size="64" font-weight="700" letter-spacing="-1">LYSSA</text>
+    <text x="56" y="690" font-size="24" fill="#666668">Software engineer and designer</text>
+    <line x1="56" y1="750" x2="584" y2="750" stroke="#dfdfda" stroke-width="2"/>
+    <text x="56" y="806" font-size="22" fill="#666668">github.com/knorthy</text>
+    <text x="584" y="806" font-size="22" fill="#666668" text-anchor="end">MNL, PH</text>
+  </g>
+</svg>
