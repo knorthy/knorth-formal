@@ -15,8 +15,20 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="en" className={`${schibsted.variable} antialiased`}>
-      <body className="font-sans">{children}</body>
+    <html
+      lang="en"
+      className={`${schibsted.variable} antialiased`}
+      suppressHydrationWarning
+    >
+      <body className="font-sans">
+        {/* Sets the theme before first paint: the saved choice, else the system setting. */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `try{var t=localStorage.getItem("theme")}catch(e){}document.documentElement.dataset.theme=t=="dark"||t=="light"?t:matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light"`,
+          }}
+        />
+        {children}
+      </body>
     </html>
   );
 }

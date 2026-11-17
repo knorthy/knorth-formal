@@ -1,17 +1,30 @@
 @import "tailwindcss";
 
-@theme inline {
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
+
+@theme {
   --color-paper: #fafaf8;
   --color-ink: #141413;
   --color-muted: #666668;
   --color-rule: #dfdfda;
+}
+@theme inline {
   --font-sans: var(--font-schibsted);
+}
+
+/* Dark mode is the same sheet with ink and paper traded. Keep in step with PALETTE in sections.tsx. */
+[data-theme="dark"] {
+  --color-paper: #141413;
+  --color-ink: #ededea;
+  --color-muted: #a3a39e;
+  --color-rule: #30302e;
+  color-scheme: dark;
 }
 
 html {
   background: var(--color-paper);
   color: var(--color-ink);
-  scrollbar-color: #b9b9b4 var(--color-paper);
+  scrollbar-color: color-mix(in oklab, var(--color-ink) 28%, var(--color-paper)) var(--color-paper);
   scroll-padding-top: 2rem;
 }
 

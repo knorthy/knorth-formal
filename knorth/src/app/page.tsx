@@ -2,13 +2,14 @@ import type { ReactNode } from "react";
 import DecryptedText from "@/components/DecryptedText";
 import { content } from "./content";
 import {
-  ContactCard,
-  CredentialFolder,
+  ContactFooter,
+  CredentialsGrid,
   HeroWall,
   ProjectSphere,
   SkillsLoop,
-  WritingDeck,
+  ThemeToggle,
 } from "./sections";
+import ChatWidget from "@/components/chat/ChatWidget";
 
 // Type scale: four sizes only. text-sm (meta), text-lg (text), `title`, `display`.
 const wrap = "mx-auto w-full max-w-[1040px] px-6";
@@ -23,10 +24,8 @@ const cols = "md:grid-cols-[1fr_232px]";
 const sections = [
   "Projects",
   "Skills",
-  "Education",
+  "Experience",
   "Credentials",
-  "Writing",
-  "GitHub",
 ];
 
 function Arrow() {
@@ -78,27 +77,18 @@ function Rows(props: {
             <span className="font-medium">{item.title}</span>
             <span className="text-muted">{item.org}</span>
           </span>
-          <span className="block text-sm text-muted tabular-nums">
-            {item.when}
-          </span>
+          {item.when && (
+            <span className="block text-sm text-muted tabular-nums">
+              {item.when}
+            </span>
+          )}
         </li>
       ))}
     </ul>
   );
 }
 
-// Sample pattern only: a fixed pseudo-random fill so the grid has a shape.
-// shortcut: no real GitHub data, wire the contributions API once a username exists.
-const shades = ["#ecece8", "#cfcfca", "#9d9d98", "#5c5c59", "#141413"];
-const cells = Array.from({ length: 53 * 7 }, (_, i) => {
-  const n = ((i * 2654435761) >>> 0) % 100;
-  const busy = i > 200 ? 25 : 60;
-  return n < busy ? 0 : n < 78 ? 1 : n < 90 ? 2 : n < 97 ? 3 : 4;
-});
-
 export default function Home() {
-  const mail = `mailto:${content.email}`;
-  const firstName = content.name.split(" ")[0];
   const initials = content.name
     .split(" ")
     .map((w) => w[0])
@@ -143,9 +133,7 @@ export default function Home() {
             </a>
           ))}
         </nav>
-        <a href={mail} className={tap}>
-          <span className="link">Email {firstName}</span>
-        </a>
+        <ThemeToggle className={`${tap} cursor-pointer`} />
       </header>
 
       <main id="main" className={wrap}>
@@ -256,6 +244,8 @@ export default function Home() {
               </div>
             </details>
           ))}
+          <h3 className="mt-10 mb-4 text-sm text-muted">Also built</h3>
+          <Rows items={content.more} />
         </section>
 
         <Section id="skills" title="Skills">
@@ -272,69 +262,22 @@ export default function Home() {
           </dl>
         </Section>
 
-        <Section id="education" title="Education">
-          <Rows items={content.education} />
+        <Section id="experience" title="Experience">
+          <Rows items={content.experience} />
+          <h3 className="mt-10 mb-4 text-sm text-muted">Leadership and volunteering</h3>
+          <Rows items={content.leadership} />
         </Section>
 
-        <Section id="credentials" title="Credentials">
-          <Rows items={content.credentials} />
-          <CredentialFolder />
-        </Section>
-
-        <Section id="writing" title="Writing">
-          <WritingDeck />
-        </Section>
-
-        <Section id="github" title="GitHub">
-          <p className="mb-5 text-muted">
-            Contributions over the last 12 months.
-          </p>
-          <div
-            role="img"
-            aria-label="Contribution grid, sample pattern"
-            className="grid grid-flow-col grid-rows-7 gap-[2px] sm:gap-[3px]"
-          >
-            {cells.map((level, i) => (
-              <span
-                key={i}
-                className="aspect-square rounded-[1px]"
-                style={{ background: shades[level] }}
-              />
-            ))}
+        <section id="credentials" aria-label="Education and credentials">
+          <div className="draw draw-view h-px bg-rule" />
+          <div className="py-14 md:py-20">
+            <CredentialsGrid />
           </div>
-        </Section>
-
-        <Section id="contact" title="Contact">
-          <ContactCard />
-          <p className="mt-4 text-muted">
-            Or write to her directly:{" "}
-            <a href={mail} className="link text-ink">
-              Email {firstName}
-            </a>
-          </p>
-        </Section>
+        </section>
       </main>
 
-      <footer className={wrap}>
-        <div className="draw h-px bg-rule" />
-        <div className="flex flex-wrap items-center justify-between gap-x-8 py-6 text-sm">
-          <span className="font-medium">{content.name}</span>
-          <span className="flex flex-wrap gap-x-7">
-            {content.links.map((l) => (
-              <a
-                key={l.label}
-                href={l.href}
-                target="_blank"
-                rel="noopener noreferrer"
-                className={tap}
-              >
-                <span className="link">{l.label}</span>
-                <Arrow />
-              </a>
-            ))}
-          </span>
-        </div>
-      </footer>
+      <ContactFooter />
+      <ChatWidget />
     </div>
   );
 }
