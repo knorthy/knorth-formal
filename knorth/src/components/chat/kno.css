@@ -356,3 +356,127 @@
     bottom: 1.5rem;
   }
 }
+
+/* ── Ask overlay (modelled on bryllim.com), in the site's ink and paper ───── */
+.ask-backdrop {
+  background: color-mix(in oklab, var(--color-paper) 82%, transparent);
+  backdrop-filter: blur(12px);
+}
+.ask-head {
+  display: flex;
+  align-items: center;
+  gap: 0.5em;
+  max-width: 100%;
+  font-size: clamp(1.25rem, 3.4vw, 1.95rem);
+}
+.ask-title {
+  font-family: var(--font-pixel), var(--font-geist-mono), monospace;
+  font-size: clamp(1.9rem, 5.5vw, 3.4rem);
+  font-weight: 400;
+  line-height: 1.05;
+  letter-spacing: -0.01em;
+  color: var(--color-ink);
+  white-space: nowrap;
+}
+.ask-title.is-small {
+  max-width: min(92vw, 660px);
+  font-size: clamp(1.25rem, 3.4vw, 1.95rem);
+  line-height: 1.3;
+  white-space: pre-wrap;
+}
+@media (max-width: 640px) {
+  .ask-title {
+    white-space: normal;
+  }
+}
+.ask-head.is-shimmer {
+  mask-image: linear-gradient(90deg, #000 0, #000 38%, rgb(0 0 0 / 0.22) 50%, #000 62%, #000 100%);
+  mask-size: 300% 100%;
+  mask-repeat: no-repeat;
+  animation: ask-sweep 1.8s linear infinite;
+}
+.ask-head.is-shimmer .ask-title {
+  color: var(--color-muted);
+}
+@keyframes ask-sweep {
+  from { mask-position: 100% 0; }
+  to { mask-position: 0 0; }
+}
+/* four dots that chase each other round a square */
+.ask-loader {
+  flex: none;
+  width: 0.85em;
+  aspect-ratio: 1;
+  --g: no-repeat radial-gradient(farthest-side, var(--color-muted) 94%, #0000);
+  background: var(--g) 0 0, var(--g) 100% 0, var(--g) 100% 100%, var(--g) 0 100%;
+  background-size: 40% 40%;
+  animation: ask-loader 1s infinite;
+}
+@keyframes ask-loader {
+  100% { background-position: 100% 0, 100% 100%, 0 100%, 0 0; }
+}
+.ask-bubble {
+  position: relative;
+  margin-left: 11px;
+  max-width: min(85vw, 600px);
+  padding: 10px 15px;
+  border-radius: 5px 14px 14px;
+  background: var(--color-rule);
+  color: var(--color-ink);
+  font-family: var(--font-geist-mono), monospace;
+  font-size: clamp(0.95rem, 2.6vw, 1.2rem);
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+  transform-origin: 0 50%;
+  animation: ask-bubble-in 0.24s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.ask-bubble::before {
+  content: "";
+  position: absolute;
+  left: -7px;
+  top: 13px;
+  border-style: solid;
+  border-width: 6px 8px 6px 0;
+  border-color: transparent var(--color-rule) transparent transparent;
+}
+@keyframes ask-bubble-in {
+  from { opacity: 0; transform: scale(0.92); }
+}
+.ask-field {
+  display: inline-flex;
+  align-items: center;
+  min-height: 2.4rem;
+  max-width: 90vw;
+  font-family: var(--font-geist-mono), monospace;
+  font-size: clamp(1.05rem, 3vw, 1.5rem);
+  color: var(--color-muted);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  cursor: text;
+}
+.ask-caret {
+  display: inline-block;
+  width: 2px;
+  height: 1.2em;
+  margin-left: 3px;
+  background: var(--color-muted);
+  animation: ask-caret 1.06s step-end infinite;
+}
+@keyframes ask-caret {
+  50% { opacity: 0; }
+}
+.ask-hidden-input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  border: 0;
+  opacity: 0;
+}
+@media (prefers-reduced-motion: reduce) {
+  .ask-head.is-shimmer,
+  .ask-loader,
+  .ask-bubble {
+    animation: none;
+  }
+}

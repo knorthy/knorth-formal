@@ -1,45 +1,94 @@
 "use client";
-// Floating Kniah chat: the pixel paw lives in the bottom-right corner and comments on what the visitor
-// is doing (see useKnoBrain). Hover makes it backflip, a click makes it hop and opens a small chat that
-// streams answers about Tiffany from /api/chat. Monochrome: flat ink and paper like the rest of the site.
+// Kniah: the pixel paw in the bottom-right corner. Clicking it (or Alt+K) opens a full-screen "ask"
+// overlay modelled on bryllim.com: the page blurs out, a big pixel-font prompt asks for a question,
+// and the reply comes back one line at a time in the same spot. The first question of a visit first
+// reads out what the visitor's browser shared on page load (lib/exposure.ts); then Gemini's answer
+// from /api/chat takes its place. Enter skips the readout, Esc or a click outside closes.
 import { useCallback, useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { useReducedMotion } from "@/components/useReducedMotionSafe";
+import { collectExposure } from "@/lib/exposure";
 import KnoPaw, { type KnoMood } from "./KnoPaw";
 import { useKnoBrain } from "./useKnoBrain";
 
-type Msg = {
-  role: "user" | "assistant";
-  content: string;
-  error?: boolean;
-};
+type Msg = { role: "user" | "assistant"; content: string };
+type Title = { key: number; text: string; small: boolean; loading: boolean };
 
-const GREETING =
-  "Hi! I'm Kniah, Tiffany's pixel paw. Ask me what she builds, where she's worked, or how to reach her.";
-const SUGGESTIONS = [
-  "What does Tiffany build?",
-  "Is she open to internships?",
-  "Tell me about her hardware projects",
-  "How do I contact her?",
-];
+const DEFAULT_TITLE = "what do you want to ask?";
 const ERRORS: Record<string, string> = {
-  not_configured: "My chat brain isn't plugged in yet. Reach Tiffany through the Contact section below instead!",
-  rate_limited: "That's a lot of questions! Give me a few minutes, or ask Tiffany directly through the Contact section.",
-  busy: "I'm a little swamped right now. Try again in a moment, or use the Contact section below.",
-  error: "My whiskers lost signal. Try again, or reach Tiffany through the Contact section below.",
+  not_configured: "my brain isn't plugged in yet. reach tiffany through the contact section instead",
+  rate_limited: "that's a lot of questions! give me a few minutes, or ask tiffany directly",
+  busy: "i'm a little swamped right now. try again in a moment",
+  error: "my whiskers lost signal. try again, or reach tiffany through the contact section",
 };
-const EASE_OUT = [0.23, 1, 0.32, 1] as const;
-
+const EASE = [0.16, 1, 0.3, 1] as const;
 const FLIP_MS = 820;
 
-function TypingDots() {
-  return (
-    <span className="inline-flex items-end gap-1 h-4" aria-label="Kniah is typing">
-      {[0, 1, 2].map((i) => (
-        <span key={i} className="kno-dot w-1.5 h-1.5 bg-ink" style={{ animationDelay: `${i * 0.14}s` }} />
-      ))}
-    </span>
-  );
+// One plain sentence per thing the browser gave away. Labels come from lib/exposure.ts.
+const SAY: Record<string, (v: string) => string> = {
+  "IP address": (v) => (v === "localhost" ? "you're on localhost, so your public ip stays hidden here" : `your public ip address is ${v}`),
+  Location: (v) => `you are somewhere around ${v}`,
+  Connection: (v) => `your connection is ${v}`,
+  System: (v) => `you are on ${v}`,
+  Browser: (v) => `you are browsing with ${v}`,
+  Device: (v) => `your device is a ${v}`,
+  CPU: (v) => `your processor runs ${v}`,
+  Memory: (v) => `you have ${v} of memory`,
+  Graphics: (v) => `your graphics card is ${v}`,
+  Screen: (v) => `your screen is ${v}`,
+  "Time zone": (v) => `your timezone is ${v}`,
+  Languages: (v) => `your browser speaks ${v}`,
+  "Came from": (v) => (v.startsWith("typed") ? "you typed this address in, or came from a bookmark" : `you came here from ${v}`),
+};
+
+async function exposureLines(): Promise<string[]> {
+  const data = await collectExposure();
+  const lines = data.groups
+    .flatMap((g) => g.rows)
+    .filter((r) => SAY[r.label])
+    .map((r) => SAY[r.label](r.value).toLowerCase());
+  if (data.fingerprint) lines.push(`together that's a fingerprint: ${data.fingerprint.match(/.{1,4}/g)!.join(" ")}`);
+  return lines;
+}
+
+// Starts the request right away so the answer streams in while the readout plays.
+function startAnswer(messages: Msg[], signal: AbortSignal) {
+  const state = { text: "", done: false, error: null as string | null, onChange: () => {} };
+  (async () => {
+    try {
+      const res = await fetch("/api/chat", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ messages }),
+        signal,
+      });
+      if (!res.ok || !res.body) {
+        const { error } = await res.json().catch(() => ({ error: "error" }));
+        state.error = ERRORS[error] ?? ERRORS.error;
+        return;
+      }
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder();
+      for (;;) {
+        const { value, done } = await reader.read();
+        if (done) break;
+        state.text += decoder.decode(value, { stream: true });
+        const marker = state.text.indexOf("\u0000");
+        if (marker !== -1) {
+          state.error = ERRORS[state.text.slice(marker + 1)] ?? ERRORS.error;
+          state.text = state.text.slice(0, marker).trim();
+          return;
+        }
+        state.onChange();
+      }
+    } catch (err) {
+      if ((err as Error).name !== "AbortError") state.error = ERRORS.error;
+    } finally {
+      state.done = true;
+      state.onChange();
+    }
+  })();
+  return state;
 }
 
 export default function ChatWidget() {
@@ -48,116 +97,153 @@ export default function ChatWidget() {
   const [hovered, setHovered] = useState(false);
   const [hop, setHop] = useState(0);
   const [flipping, setFlipping] = useState(false);
-  const [chatSessions, setChatSessions] = useState(0);
-  const [messages, setMessages] = useState<Msg[]>([]);
+  const [sessions, setSessions] = useState(0);
   const [input, setInput] = useState("");
-  const [streaming, setStreaming] = useState(false);
+  const [bubble, setBubble] = useState<string | null>(null);
+  const [title, setTitle] = useState<Title>({ key: 0, text: DEFAULT_TITLE, small: false, loading: false });
+  const [busy, setBusy] = useState(false);
+  const [revealing, setRevealing] = useState(false);
+  const [error, setError] = useState(false);
+
+  const history = useRef<Msg[]>([]);
+  const revealed = useRef(false);
+  const run = useRef(0); // bumped on close, so a running sequence knows to stop
+  const skipped = useRef(false);
+  const wake = useRef<(() => void) | null>(null);
+  const abort = useRef<AbortController | null>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
   const launcherRef = useRef<HTMLButtonElement>(null);
-  const inputRef = useRef<HTMLTextAreaElement>(null);
-  const listRef = useRef<HTMLDivElement>(null);
-  const abortRef = useRef<AbortController | null>(null);
+
+  const show = (text: string, loading = false) =>
+    setTitle((t) => ({ key: t.key + 1, text, small: true, loading }));
+  // Waits unless the visitor skipped; resolves false once the overlay has closed.
+  const wait = (ms: number, id: number) =>
+    new Promise<boolean>((resolve) => {
+      if (skipped.current) return resolve(run.current === id);
+      const t = setTimeout(() => resolve(run.current === id), ms);
+      wake.current = () => { clearTimeout(t); resolve(run.current === id); };
+    });
 
   const close = useCallback(() => {
+    run.current++;
+    abort.current?.abort();
     setOpen(false);
-    setChatSessions((n) => n + 1);
-    abortRef.current?.abort();
+    setSessions((n) => n + 1);
     requestAnimationFrame(() => launcherRef.current?.focus());
   }, []);
 
+  const openAsk = useCallback(() => {
+    run.current++;
+    setInput("");
+    setBubble(null);
+    setBusy(false);
+    setRevealing(false);
+    setError(false);
+    setTitle((t) => ({ key: t.key + 1, text: DEFAULT_TITLE, small: false, loading: false }));
+    setOpen(true);
+  }, []);
+
+  // Esc closes; Alt+K opens and closes from anywhere
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape" && open) close();
+      else if (e.altKey && e.key.toLowerCase() === "k") {
+        e.preventDefault();
+        if (open) close();
+        else openAsk();
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [open, close, openAsk]);
+
   useEffect(() => {
     if (!open) return;
-    const onKey = (e: KeyboardEvent) => e.key === "Escape" && close();
-    window.addEventListener("keydown", onKey);
-    const t = setTimeout(() => inputRef.current?.focus(), 250);
-    return () => { window.removeEventListener("keydown", onKey); clearTimeout(t); };
-  }, [open, close]);
+    const t = setTimeout(() => inputRef.current?.focus(), 150);
+    return () => clearTimeout(t);
+  }, [open]);
 
-  // Keep the newest message in view while it streams
-  useEffect(() => {
-    const el = listRef.current;
-    if (el) el.scrollTop = el.scrollHeight;
-  }, [messages, streaming]);
-
-  const send = async (text: string) => {
-    const content = text.trim();
-    if (!content || streaming) return;
-    const history: Msg[] = [...messages.filter((m) => !m.error), { role: "user", content }];
+  const ask = async (text: string) => {
+    const question = text.trim();
+    if (!question || busy) return;
+    const id = run.current;
+    setBusy(true);
+    setError(false);
     setInput("");
-    setStreaming(true);
+    setBubble(question);
+    skipped.current = false;
+    history.current = [...history.current, { role: "user" as const, content: question }].slice(-12);
+    abort.current = new AbortController();
+    const answer = startAnswer(history.current, abort.current.signal);
 
-    setMessages([...history, { role: "assistant", content: "" }]);
+    show("thinking...", true);
+    if (!(await wait(1200, id))) return;
 
-    const controller = new AbortController();
-    abortRef.current = controller;
-    const setLast = (patch: (m: Msg) => Msg) =>
-      setMessages((ms) => [...ms.slice(0, -1), patch(ms[ms.length - 1])]);
-
-    try {
-      const res = await fetch("/api/chat", {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({ messages: history.map(({ role, content }) => ({ role, content })) }),
-        signal: controller.signal,
-      });
-      if (!res.ok || !res.body) {
-        const { error } = await res.json().catch(() => ({ error: "error" }));
-        setLast(() => ({ role: "assistant", content: ERRORS[error] ?? ERRORS.error, error: true }));
-        return;
+    if (!revealed.current) {
+      revealed.current = true;
+      setRevealing(true);
+      show("analyzing...", true);
+      const facts = await exposureLines();
+      if (!(await wait(1000, id))) return;
+      const script = [
+        "before i answer",
+        "here is what your browser already shared the moment you opened this site",
+        ...facts,
+        "none of this needed your permission",
+        "your browser shares it with every website you open, automatically",
+        "so be mindful of what you click, and who you trust online",
+        "as for your question",
+      ];
+      for (const [i, line] of script.entries()) {
+        if (i === 1) setBubble(null);
+        show(line);
+        if (!(await wait(1600 + line.length * 22, id))) return;
       }
-      const reader = res.body.getReader();
-      const decoder = new TextDecoder();
-      let acc = "";
-      for (;;) {
-        const { value, done } = await reader.read();
-        if (done) break;
-        acc += decoder.decode(value, { stream: true });
-        const marker = acc.indexOf("\u0000");
-        if (marker !== -1) {
-          const code = acc.slice(marker + 1);
-          const before = acc.slice(0, marker).trim();
-          setLast(() => ({
-            role: "assistant",
-            content: before ? `${before}\n\n${ERRORS[code] ?? ERRORS.error}` : ERRORS[code] ?? ERRORS.error,
-            error: !before,
-          }));
-          return;
-        }
-        setLast((m) => ({ ...m, content: acc }));
-      }
-    } catch (err) {
-      if ((err as Error).name !== "AbortError") {
-        setLast(() => ({ role: "assistant", content: ERRORS.error, error: true }));
-      }
-    } finally {
-      setStreaming(false);
-      abortRef.current = null;
+      setRevealing(false);
+      setBubble(question);
     }
+
+    // The answer: stream into one title so it doesn't re-animate on every chunk
+    const key = Date.now();
+    const render = () => {
+      if (run.current !== id) return;
+      if (answer.error && !answer.text) {
+        setError(true);
+        setTitle({ key, text: answer.error, small: true, loading: false });
+      } else if (answer.text) {
+        setTitle({ key, text: answer.error ? `${answer.text}\n\n${answer.error}` : answer.text, small: true, loading: false });
+      } else if (!answer.done) {
+        setTitle({ key, text: "thinking...", small: true, loading: true });
+      }
+      if (answer.done && run.current === id) {
+        if (answer.text && !answer.error) history.current.push({ role: "assistant", content: answer.text });
+        setBusy(false);
+        requestAnimationFrame(() => inputRef.current?.focus());
+      }
+    };
+    answer.onChange = render;
+    render();
   };
 
   const toggle = () => {
     if (open) { close(); return; }
     setHop((h) => h + 1);
-    setTimeout(() => setOpen(true), reduce ? 0 : 260);
+    setTimeout(openAsk, reduce ? 0 : 260);
   };
 
-  const brain = useKnoBrain(open || hovered, chatSessions);
+  const brain = useKnoBrain(open || hovered, sessions);
   const launcherMood: KnoMood = flipping ? "flip" : hovered ? "idle" : brain.mood;
-
   const onEnter = () => {
     setHovered(true);
     if (reduce || flipping) return;
     setFlipping(true);
     setTimeout(() => setFlipping(false), FLIP_MS);
   };
-
-  const bubbleText = open ? null : hovered ? "Ask me anything" : brain.line;
-  const last = messages[messages.length - 1];
-  const lastIsEmptyAssistant = streaming && last?.content === "";
+  const bubbleText = open ? null : hovered ? "ask me anything" : brain.line;
 
   return (
     <>
-      {/* Launcher */}
-      {/* On phones Kniah sits at the right end of the nav dock and her bubble floats above her */}
+      {/* Launcher. On phones the remark floats above the paw. */}
       <div className="kno-dock-slot fixed right-3 md:right-6 z-[60] flex items-end gap-2 pointer-events-none [&>*]:pointer-events-auto">
         <AnimatePresence mode="wait">
           {bubbleText && (
@@ -167,23 +253,22 @@ export default function ChatWidget() {
               initial={{ opacity: 0, x: 8, scale: 0.9 }}
               animate={{ opacity: 1, x: 0, scale: 1 }}
               exit={{ opacity: 0, x: 6, scale: 0.95, transition: { duration: 0.12 } }}
-              transition={{ duration: 0.22, ease: EASE_OUT }}
+              transition={{ duration: 0.22, ease: EASE }}
               className="absolute bottom-full right-1 mb-2 md:static md:mb-7 w-max max-w-[200px] md:max-w-[240px] px-3 py-2 border border-ink bg-paper text-ink text-sm leading-snug pointer-events-none origin-bottom-right"
             >
               {bubbleText}
             </motion.div>
           )}
         </AnimatePresence>
-        <motion.button
+        <button
           ref={launcherRef}
           type="button"
           onClick={toggle}
           onPointerEnter={onEnter}
           onPointerLeave={() => setHovered(false)}
-          aria-label={open ? "Close chat with Kniah" : "Chat with Kniah, Tiffany's assistant"}
-          aria-expanded={open}
-          aria-controls="kno-chat"
-          className={`kno-launcher relative grid place-items-center w-20 h-16 ${hovered ? "kno-perk" : ""}`}
+          aria-label="Ask Kniah about Tiffany (Alt+K)"
+          aria-haspopup="dialog"
+          className="kno-launcher relative grid place-items-center w-20 h-16"
         >
           <motion.span
             key={hop}
@@ -195,113 +280,93 @@ export default function ChatWidget() {
           >
             <KnoPaw size={76} mood={launcherMood} />
           </motion.span>
-        </motion.button>
+        </button>
       </div>
 
-      {/* Chat panel */}
+      {/* Ask overlay */}
       <AnimatePresence>
         {open && (
           <motion.div
-            id="kno-chat"
             role="dialog"
-            aria-label="Chat with Kniah"
-            initial={reduce ? { opacity: 0 } : { opacity: 0, y: 16, scale: 0.96 }}
-            animate={reduce ? { opacity: 1 } : { opacity: 1, y: 0, scale: 1 }}
-            exit={reduce ? { opacity: 0 } : { opacity: 0, y: 12, scale: 0.97, transition: { duration: 0.16 } }}
-            transition={{ duration: 0.3, ease: EASE_OUT }}
-            className="fixed z-[61] inset-x-3 bottom-3 h-[78svh] md:inset-x-auto md:right-6 md:bottom-24 md:w-[380px] md:h-[min(560px,72vh)] flex flex-col overflow-hidden border border-ink bg-paper text-ink origin-bottom-right"
+            aria-modal="true"
+            aria-label="Ask Kniah about Tiffany"
+            className="fixed inset-0 z-[100] flex items-center p-6"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: reduce ? 0 : 0.4 }}
           >
-            <header className="flex items-center gap-3 px-4 py-3 border-b border-rule">
-              <span className="grid place-items-center w-11 h-9 shrink-0">
-                <KnoPaw size={44} mood={streaming ? "think" : "idle"} />
-              </span>
-              <div className="min-w-0">
-                <p className="text-sm font-semibold leading-tight">Kniah</p>
-                <p className="text-sm text-muted leading-tight truncate">
-                  {streaming ? "thinking…" : "Tiffany's pixel paw · answers about her work"}
-                </p>
-              </div>
-              <button
-                type="button"
-                onClick={close}
-                aria-label="Close chat"
-                className="ml-auto grid place-items-center size-11 text-muted hover:text-ink transition-colors"
-              >
-                <svg aria-hidden viewBox="0 0 12 12" className="size-3 fill-none stroke-current" strokeWidth="1.25"><path d="M1 1l10 10M11 1L1 11" /></svg>
-              </button>
-            </header>
-
-            <div ref={listRef} className="flex-1 overflow-y-auto px-4 py-4 space-y-3 overscroll-contain" aria-live="polite">
-              <p className="kno-msg kno-msg-bot">{GREETING}</p>
-
-              {messages.length === 0 && (
-                <div className="flex flex-wrap gap-2 pt-1">
-                  {SUGGESTIONS.map((s, i) => (
-                    <motion.button
-                      key={s}
-                      type="button"
-                      onClick={() => send(s)}
-                      initial={reduce ? false : { opacity: 0, y: 6 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: 0.12 + i * 0.05, duration: 0.3, ease: EASE_OUT }}
-                      className="px-3 py-2 border border-rule text-sm text-muted hover:border-ink hover:text-ink transition-colors"
-                    >
-                      {s}
-                    </motion.button>
-                  ))}
-                </div>
-              )}
-
-              {messages.map((m, i) =>
-                m.role === "user" ? (
-                  <p key={i} className="kno-msg kno-msg-user">{m.content}</p>
-                ) : i === messages.length - 1 && lastIsEmptyAssistant ? (
-                  <div key={i} className="kno-msg kno-msg-bot"><TypingDots /></div>
-                ) : (
-                  <p key={i} className={`kno-msg kno-msg-bot ${m.error ? "kno-msg-error" : ""}`}>
-                    {m.content}
-                    {m.error && (
-                      <>
-                        {" "}
-                        <a href="#contact" onClick={close} className="link">
-                          Go to contact
-                        </a>
-                      </>
-                    )}
-                  </p>
-                ),
-              )}
-            </div>
-
-            <form
-              onSubmit={(e) => { e.preventDefault(); send(input); }}
-              className="flex items-end gap-2 p-3 border-t border-rule"
+            <div className="ask-backdrop absolute inset-0" onClick={close} />
+            <button
+              type="button"
+              onClick={close}
+              className="absolute top-4 right-4 z-10 min-h-11 px-3 font-mono text-sm text-muted hover:text-ink"
             >
-              <label htmlFor="kno-input" className="sr-only">Ask Kniah about Tiffany</label>
-              <textarea
-                id="kno-input"
+              esc
+            </button>
+            <motion.div
+              className="relative z-[1] flex max-h-[85svh] w-full max-w-[900px] flex-col items-start gap-6 overflow-y-auto pl-[clamp(0rem,9vw,8rem)]"
+              initial={reduce ? false : { opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.55, ease: EASE, delay: 0.1 }}
+              onClick={() => inputRef.current?.focus()}
+            >
+              {bubble && <p className="ask-bubble">{bubble}</p>}
+
+              <div className={`ask-head ${title.loading ? "is-shimmer" : ""}`} aria-live="polite">
+                {title.loading && <span className="ask-loader" aria-hidden />}
+                <AnimatePresence mode="wait" initial={false}>
+                  <motion.h2
+                    key={title.key}
+                    className={`ask-title ${title.small ? "is-small" : ""}`}
+                    initial={reduce ? false : { opacity: 0, y: 6 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={reduce ? undefined : { opacity: 0, y: 6, transition: { duration: 0.2 } }}
+                    transition={{ duration: 0.3, ease: EASE }}
+                  >
+                    {title.text}
+                  </motion.h2>
+                </AnimatePresence>
+              </div>
+
+              {error && (
+                <a href="#contact" onClick={close} className="link text-sm">
+                  Go to contact
+                </a>
+              )}
+
+              {!busy ? (
+                <div className="ask-field" aria-hidden>
+                  <span>{input}</span>
+                  <span className="ask-caret" />
+                </div>
+              ) : (
+                revealing && <p className="font-mono text-sm text-muted">press enter to skip</p>
+              )}
+
+              <input
                 ref={inputRef}
-                rows={1}
+                className="ask-hidden-input"
+                type="text"
                 value={input}
                 maxLength={600}
+                readOnly={busy}
+                autoComplete="off"
+                spellCheck={false}
+                aria-label="Type your question about Tiffany, then press Enter"
                 onChange={(e) => setInput(e.target.value)}
                 onKeyDown={(e) => {
-                  if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(input); }
+                  if (e.key !== "Enter") return;
+                  e.preventDefault();
+                  if (busy) {
+                    skipped.current = true;
+                    wake.current?.();
+                  } else ask(input);
                 }}
-                placeholder="Ask about Tiffany…"
-                className="flex-1 resize-none max-h-28 px-3.5 py-2.5 bg-paper border border-rule text-sm text-ink placeholder:text-muted focus:border-ink transition-colors"
               />
-              <button
-                type="submit"
-                disabled={!input.trim() || streaming}
-                aria-label="Send"
-                className="grid place-items-center size-11 shrink-0 bg-ink text-paper transition-opacity disabled:opacity-35"
-              >
-                <svg aria-hidden viewBox="0 0 12 12" className="size-3 fill-none stroke-current" strokeWidth="1.25"><path d="M6 11V1M2 5l4-4 4 4" /></svg>
-              </button>
-            </form>
-            <p className="px-4 pb-3 -mt-1 text-sm text-muted">
-              AI answers by Google Gemini from Tiffany&apos;s portfolio. They can be wrong, and chats may be reviewed by Google, so skip anything private.
+            </motion.div>
+            <p className="absolute bottom-4 left-6 right-24 z-[1] text-sm text-muted">
+              AI answers by Google Gemini from Tiffany&apos;s portfolio. They can be wrong, so skip anything private.
             </p>
           </motion.div>
         )}

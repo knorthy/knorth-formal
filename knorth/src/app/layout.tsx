@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Schibsted_Grotesk } from "next/font/google";
+import { Geist_Mono, Geist_Pixel, Schibsted_Grotesk } from "next/font/google";
 import { content } from "./content";
 import "./globals.css";
 
@@ -7,6 +7,9 @@ const schibsted = Schibsted_Grotesk({
   variable: "--font-schibsted",
   subsets: ["latin"],
 });
+// Used only by Kniah's ask overlay.
+const pixel = Geist_Pixel({ variable: "--font-pixel", subsets: ["latin"] });
+const geistMono = Geist_Mono({ variable: "--font-geist-mono", subsets: ["latin"] });
 
 export const metadata: Metadata = {
   title: `${content.name}, ${content.title}`,
@@ -17,7 +20,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html
       lang="en"
-      className={`${schibsted.variable} antialiased`}
+      className={`${schibsted.variable} ${pixel.variable} ${geistMono.variable} antialiased`}
       suppressHydrationWarning
     >
       <body className="font-sans">

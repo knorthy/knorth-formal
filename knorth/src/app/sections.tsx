@@ -211,7 +211,12 @@ const field =
   "w-full rounded-[10px] border border-white/10 bg-white/5 px-[18px] py-3.5 text-sm text-white outline-none transition-colors placeholder:text-white/30 focus:border-white/50";
 const faint = "text-white/45";
 
+// The year is read in the browser only: a prerendered page can't hold the current date.
+const noop = () => () => {};
+const useYear = () => useSyncExternalStore(noop, () => new Date().getFullYear(), () => null);
+
 export function ContactFooter() {
+  const year = useYear();
   const firstName = content.name.split(" ")[0];
   const send = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -250,7 +255,7 @@ export function ContactFooter() {
             ))}
           </nav>
           <p className="mt-4 text-sm text-white/25">
-            © {new Date().getFullYear()} {content.name}. Built with care.
+            © {year} {content.name}. Built with care.
           </p>
         </div>
 

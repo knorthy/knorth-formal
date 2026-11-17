@@ -72,7 +72,7 @@ function Rows(props: {
   return (
     <ul>
       {props.items.map((item) => (
-        <li key={item.title} className={row}>
+        <li key={`${item.title}-${item.org}`} className={row}>
           <span className="flex flex-wrap items-baseline gap-x-3">
             <span className="font-medium">{item.title}</span>
             <span className="text-muted">{item.org}</span>
