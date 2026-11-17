@@ -4,6 +4,7 @@ import { content } from "./content";
 import {
   ContactFooter,
   CredentialsGrid,
+  GalleryWall,
   HeroWall,
   ProjectDeck,
   SkillsLoop,
@@ -216,6 +217,22 @@ export default function Home() {
           <h3 className="mt-10 mb-4 font-sans text-sm text-muted">Leadership and volunteering</h3>
           <Rows items={content.leadership} />
         </Section>
+
+        {/* Heading and line keep the side-heading grid; the wall itself spans the whole sheet. */}
+        <section id="gallery" aria-labelledby="gallery-title">
+          <div className="draw draw-view h-px bg-rule" />
+          <div className="grid gap-x-10 gap-y-6 pt-14 pb-8 md:grid-cols-[200px_1fr] md:pt-20">
+            <h2 id="gallery-title" className="text-lg font-medium">
+              Gallery
+            </h2>
+            <p className="max-w-[54ch] text-muted">
+              Interfaces, posters, motion and hardware. Hover a tile to bring it forward in colour.
+            </p>
+          </div>
+          <div className="pb-14 md:pb-20">
+            <GalleryWall />
+          </div>
+        </section>
 
         <section id="credentials" aria-label="Education and credentials">
           <div className="draw draw-view h-px bg-rule" />

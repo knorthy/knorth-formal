@@ -76,6 +76,18 @@ export const content = {
       href: "",
     },
   ],
+  // Design and build work shown on the drifting wall below Experience (files in public/work).
+  gallery: [
+    { image: "/work/uiux-event-app.webp", title: "Event app: character setup, events and discover" },
+    { image: "/work/graphics-blockchain-decoders.webp", title: "Blockchain Decoders speaker poster" },
+    { image: "/work/uiux-competition-site.webp", title: "Competition site: rulebook and events" },
+    { image: "/work/graphics-project-coding-2025.webp", title: "Project Coding 2025 event graphics" },
+    { image: "/work/websites-claro-feedback.webp", title: "Claro: feedback form and footer" },
+    { image: "/work/motion-bcc-teaser.jpg", title: "Blockchain Campus Conference teaser" },
+    { image: "/work/graphics-stix-n-print.webp", title: "Social ad for Stix 'N Print co." },
+    { image: "/work/uiux-psometric.webp", title: "PsoMetric: sign-in and assessment flows" },
+    { image: "/work/qa-illustration.webp", title: "Illustration: a regression run and a bug report" },
+  ],
   more: [
     { title: "One Indang", org: "Official mobile app of the Municipality of Indang: public services, emergency contacts, news and issue reporting", when: "" },
     { title: "The Blind Leading the Blown Up", org: "3D game, led gameplay, level design and delivery", when: "" },

@@ -54,6 +54,37 @@ export function ThemeToggle({ className }: { className?: string }) {
 
 const wallItems = content.projects.map((p) => ({ image: p.image, title: p.title }));
 
+// Design and build work drifting past under Experience: the gallery plus every project image.
+const galleryItems = [
+  ...content.gallery,
+  ...content.projects.map((p) => ({ image: p.image, title: p.title })),
+];
+
+export function GalleryWall() {
+  const c = PALETTE[useTheme()];
+  return (
+    <div className="h-[460px] md:h-[640px]">
+      <DriftWall
+        items={galleryItems}
+        columns={7}
+        tileWidth={220}
+        tileHeight={146}
+        gap={16}
+        radius={4}
+        tilt={16}
+        turn={-14}
+        speed={36}
+        parallax={0.5}
+        lift={56}
+        fade={0.6}
+        dim={0.75}
+        grayscale
+        overlayColor={c.paper}
+      />
+    </div>
+  );
+}
+
 // Decorative backdrop: `inert` keeps its many repeated tiles out of the tab order.
 export function HeroWall() {
   const theme = useTheme();
