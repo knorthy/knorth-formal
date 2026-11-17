@@ -103,28 +103,35 @@ export function ProjectDeck() {
         <p className="mt-6 max-w-[48ch] leading-[1.6] text-pretty text-muted">{p.description}</p>
         <p className="mt-4 text-sm">{p.tools}</p>
         <div className="mt-8 flex flex-wrap items-center gap-x-10 gap-y-6">
-          {/* Learn more asks Kniah about this project (see ChatWidget's "kniah:ask" listener) */}
-          <button
-            type="button"
-            onClick={() =>
-              window.dispatchEvent(new CustomEvent("kniah:ask", { detail: `tell me more about ${p.title}` }))
-            }
-            className="inline-flex min-h-11 cursor-pointer items-center text-sm"
-          >
-            <span className="link">Learn more</span>
-            <span aria-hidden className="ml-1.5">&rarr;</span>
-          </button>
-          <span className="flex items-center gap-4">
+          {/* "Learn more" asks Kniah about this project (ChatWidget listens for "kniah:ask"); the small
+              sling in place of its arrow swaps to the next project when tapped or pulled and let go. */}
+          <span className="inline-flex items-center gap-2.5 text-sm">
+            <button
+              type="button"
+              onClick={() =>
+                window.dispatchEvent(new CustomEvent("kniah:ask", { detail: `tell me more about ${p.title}` }))
+              }
+              className="inline-flex min-h-11 cursor-pointer items-center"
+            >
+              <span className="link">Learn more</span>
+            </button>
             <SlingButton
               onSend={() => deck.current?.next()}
               ariaLabel="Next project"
+              size={26}
+              strokeWidth={1.5}
+              armAt={18}
+              maxPull={70}
               padColor={c.ink}
               iconColor={c.paper}
               accentColor={c.ink}
               wellColor={c.well}
               bandColor={c.band}
-            />
-            <span className="text-sm text-muted">Pull and let go for the next one</span>
+            >
+              <svg aria-hidden viewBox="0 0 12 12" className="size-3 fill-none stroke-current" strokeWidth="1.5">
+                <path d="M1 6h10M7 2l4 4-4 4" />
+              </svg>
+            </SlingButton>
           </span>
         </div>
       </div>

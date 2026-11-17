@@ -12,7 +12,7 @@ const IDLE_SLEEP_MS = 40000;
 const GREETED_KEY = "kniah-greeted";
 
 const SECTIONS: Record<string, string> = {
-  projects: "spin the sphere, there's a lot in there",
+  projects: "pull the sling, there's more in the pile",
   skills: "so many tools, so little time",
   experience: "real jobs, real bugs squashed",
   credentials: "the paper trail! very official",
