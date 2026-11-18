@@ -1,5 +1,6 @@
 "use client";
-// Kniah: the pixel paw in the bottom-right corner. Clicking it (or Alt+K) opens a full-screen "ask"
+// Kniah: the pixel paw in the bottom-right corner. Clicking it opens a branched menu (page sections,
+// socials, and "Ask Kniah"); "Ask Kniah", or Alt+K from anywhere, opens a full-screen "ask"
 // overlay modelled on bryllim.com: the page blurs out, a big pixel-font prompt asks for a question,
 // and the reply comes back one line at a time in the same spot. The first question of a visit first
 // reads out what the visitor's browser shared on page load (lib/exposure.ts); then Gemini's answer
@@ -9,7 +10,8 @@ import { AnimatePresence, motion } from "motion/react";
 import { useReducedMotion } from "@/components/useReducedMotionSafe";
 import { collectExposure } from "@/lib/exposure";
 import KnoPaw, { type KnoMood } from "./KnoPaw";
-import { useKnoBrain } from "./useKnoBrain";
+import BranchedMenu, { type BranchedMenuItem } from "@/components/BranchedMenu";
+import { content } from "@/app/content";
 
 type Msg = { role: "user" | "assistant"; content: string };
 type Title = { key: number; text: string; small: boolean; loading: boolean };
@@ -22,6 +24,24 @@ const ERRORS: Record<string, string> = {
   error: "my whiskers lost signal. try again, or reach tiffany through the contact section",
 };
 const EASE = [0.16, 1, 0.3, 1] as const;
+
+// The paw's menu: every part of the page, the socials, and the chatbot itself.
+const MENU: BranchedMenuItem[] = [
+  {
+    label: "On this page",
+    children: [
+      { value: "#main", label: "Home" },
+      { value: "#credentials", label: "Credentials" },
+      { value: "#projects", label: "Projects" },
+      { value: "#skills", label: "Skills" },
+      { value: "#experience", label: "Experience" },
+      { value: "#gallery", label: "Gallery" },
+      { value: "#contact", label: "Contact" },
+    ],
+  },
+  { label: "Socials", children: content.links.map((l) => ({ value: l.href, label: l.label })) },
+  { label: "Ask Kniah", value: "ask" },
+];
 const FLIP_MS = 820;
 
 // One plain sentence per thing the browser gave away. Labels come from lib/exposure.ts.
@@ -94,10 +114,9 @@ function startAnswer(messages: Msg[], signal: AbortSignal) {
 export default function ChatWidget() {
   const reduce = useReducedMotion();
   const [open, setOpen] = useState(false);
-  const [hovered, setHovered] = useState(false);
+  const [menu, setMenu] = useState(false);
   const [hop, setHop] = useState(0);
   const [flipping, setFlipping] = useState(false);
-  const [sessions, setSessions] = useState(0);
   const [input, setInput] = useState("");
   const [bubble, setBubble] = useState<string | null>(null);
   const [title, setTitle] = useState<Title>({ key: 0, text: DEFAULT_TITLE, small: false, loading: false });
@@ -113,6 +132,7 @@ export default function ChatWidget() {
   const abort = useRef<AbortController | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const launcherRef = useRef<HTMLButtonElement>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
 
   const show = (text: string, loading = false) =>
     setTitle((t) => ({ key: t.key + 1, text, small: true, loading }));
@@ -128,7 +148,6 @@ export default function ChatWidget() {
     run.current++;
     abort.current?.abort();
     setOpen(false);
-    setSessions((n) => n + 1);
     requestAnimationFrame(() => launcherRef.current?.focus());
   }, []);
 
@@ -147,6 +166,10 @@ export default function ChatWidget() {
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape" && open) close();
+      else if (e.key === "Escape" && menu) {
+        setMenu(false);
+        launcherRef.current?.focus();
+      }
       else if (e.altKey && e.key.toLowerCase() === "k") {
         e.preventDefault();
         if (open) close();
@@ -155,7 +178,19 @@ export default function ChatWidget() {
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [open, close, openAsk]);
+  }, [open, menu, close, openAsk]);
+
+  // The menu closes on a click anywhere else, and takes focus when it opens
+  useEffect(() => {
+    if (!menu) return;
+    const onDown = (e: PointerEvent) => {
+      const t = e.target as Node;
+      if (!menuRef.current?.contains(t) && !launcherRef.current?.contains(t)) setMenu(false);
+    };
+    document.addEventListener("pointerdown", onDown);
+    requestAnimationFrame(() => menuRef.current?.querySelector("button")?.focus());
+    return () => document.removeEventListener("pointerdown", onDown);
+  }, [menu]);
 
   useEffect(() => {
     if (!open) return;
@@ -244,35 +279,51 @@ export default function ChatWidget() {
   const toggle = () => {
     if (open) { close(); return; }
     setHop((h) => h + 1);
-    setTimeout(openAsk, reduce ? 0 : 260);
+    setMenu((m) => !m);
   };
 
-  const brain = useKnoBrain(open || hovered, sessions);
-  const launcherMood: KnoMood = flipping ? "flip" : hovered ? "idle" : brain.mood;
+  const pick = (value: string) => {
+    setMenu(false);
+    if (value === "ask") openAsk();
+    else if (value.startsWith("#")) document.querySelector(value)?.scrollIntoView({ behavior: reduce ? "auto" : "smooth" });
+    else window.open(value, "_blank", "noopener,noreferrer");
+  };
+
   const onEnter = () => {
-    setHovered(true);
     if (reduce || flipping) return;
     setFlipping(true);
     setTimeout(() => setFlipping(false), FLIP_MS);
   };
-  const bubbleText = open ? null : hovered ? "ask me anything" : brain.line;
+  const launcherMood: KnoMood = flipping ? "flip" : "idle";
 
   return (
     <>
-      {/* Launcher. On phones the remark floats above the paw. */}
-      <div className="kno-dock-slot fixed right-3 md:right-6 z-[60] flex items-end gap-2 pointer-events-none [&>*]:pointer-events-auto">
-        <AnimatePresence mode="wait">
-          {bubbleText && (
+      {/* Launcher, with its menu floating above it */}
+      <div className="kno-dock-slot fixed right-3 md:right-6 z-[60] flex flex-col items-end gap-2">
+        <AnimatePresence>
+          {menu && (
             <motion.div
-              key={bubbleText}
-              aria-hidden
-              initial={{ opacity: 0, x: 8, scale: 0.9 }}
-              animate={{ opacity: 1, x: 0, scale: 1 }}
-              exit={{ opacity: 0, x: 6, scale: 0.95, transition: { duration: 0.12 } }}
+              ref={menuRef}
+              id="kno-menu"
+              role="navigation"
+              aria-label="Site menu"
+              initial={reduce ? false : { opacity: 0, y: 8, scale: 0.97 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: 6, transition: { duration: 0.12 } }}
               transition={{ duration: 0.22, ease: EASE }}
-              className="absolute bottom-full right-1 mb-2 md:static md:mb-7 w-max max-w-[200px] md:max-w-[240px] px-3 py-2 border border-ink bg-paper text-ink text-sm leading-snug pointer-events-none origin-bottom-right"
+              className="origin-bottom-right border border-rule bg-paper px-4 py-3"
             >
-              {bubbleText}
+              <BranchedMenu
+                items={MENU}
+                defaultOpen={[0, 1]}
+                defaultActive="-"
+                onSelect={(value) => pick(value)}
+                color="var(--color-ink)"
+                accentColor="var(--color-ink)"
+                lineColor="var(--color-rule)"
+                width={220}
+                rowHeight={34}
+              />
             </motion.div>
           )}
         </AnimatePresence>
@@ -281,9 +332,9 @@ export default function ChatWidget() {
           type="button"
           onClick={toggle}
           onPointerEnter={onEnter}
-          onPointerLeave={() => setHovered(false)}
-          aria-label="Ask Kniah about Tiffany (Alt+K)"
-          aria-haspopup="dialog"
+          aria-label="Open the site menu"
+          aria-expanded={menu}
+          aria-controls="kno-menu"
           className="kno-launcher relative grid place-items-center w-20 h-16"
         >
           <motion.span

@@ -1,7 +1,11 @@
 'use client';
 
-// React Bits Lanyard. Local changes: a `grayscale` prop that prints the card and strap images in black
-// and white, and settings written in a layout effect (not during render) to satisfy react-hooks/refs.
+// React Bits Lanyard. Local changes:
+// - `grayscale` prints the card and strap images in black and white;
+// - `anchor` also takes a number, the strap's x as a fraction of the width;
+// - `passThrough` lets a canvas that covers other content stay click-through: the canvas ignores the
+//   pointer, and window listeners grab the card only when the pointer is on it;
+// - settings are written in a layout effect, not during render, to satisfy react-hooks/refs.
 import { useEffect, useLayoutEffect, useRef } from 'react';
 import type { CSSProperties } from 'react';
 import * as THREE from 'three';
@@ -9,7 +13,7 @@ import * as THREE from 'three';
 type Orientation = 'portrait' | 'landscape';
 type Finish = 'glossy' | 'matte' | 'holographic' | 'metallic';
 type Metal = 'graphite' | 'silver' | 'gold';
-type Anchor = 'left' | 'center' | 'right';
+type Anchor = 'left' | 'center' | 'right' | number;
 type ImageFit = 'cover' | 'contain';
 type Rgb = [number, number, number];
 type Point = { clientX: number; clientY: number };
@@ -42,6 +46,7 @@ export interface LanyardProps {
   interactive?: boolean;
   intro?: boolean;
   grayscale?: boolean;
+  passThrough?: boolean;
   className?: string;
   style?: CSSProperties;
 }
@@ -904,6 +909,7 @@ const Lanyard = ({
   interactive = true,
   intro = true,
   grayscale = false,
+  passThrough = false,
   className = '',
   style
 }: LanyardProps) => {
@@ -1112,7 +1118,7 @@ const Lanyard = ({
       foilUniforms.foilKey.value.set(-2.5, 4, 6).normalize().transformDirection(camera.matrixWorldInverse);
       foilUniforms.foilFill.value.set(3, -1, 4).normalize().transformDirection(camera.matrixWorldInverse);
       foilUniforms.foilTop.value.set(0.5, 4.5, 8).normalize().transformDirection(camera.matrixWorldInverse);
-      const anchorX = ((ANCHORS[s.anchor] ?? 0.5) - 0.5) * viewWidth;
+      const anchorX = ((typeof s.anchor === 'number' ? s.anchor : (ANCHORS[s.anchor] ?? 0.5)) - 0.5) * viewWidth;
       const anchorY = viewHeight / 2 + 0.2;
       const cardTop = viewHeight / 2 - viewHeight * mix(0.12, 0.42, clamp(s.strapLength, 0, 1));
       const hangTop = cardTop + (layout.hangY - layout.height / 2);
@@ -1195,7 +1201,7 @@ const Lanyard = ({
         clampMesh.geometry.dispose();
         clampMesh.geometry = buildClampGeometry(strapScale);
       }
-      canvas.style.touchAction = s.interactive ? 'pan-y' : 'auto';
+      if (!passThrough) canvas.style.touchAction = s.interactive ? 'pan-y' : 'auto';
 
       applied = { layoutKey, framingKey, imageKey, faceKey, strapColor: s.strapColor, strapScale };
       start();
@@ -1357,8 +1363,15 @@ const Lanyard = ({
       return hits[0] || null;
     };
 
+    // With passThrough the canvas never receives the pointer, so the cursor goes on the page instead
+    const cursorEl = passThrough ? document.documentElement : canvas;
     const setCursor = (value: string) => {
-      if (canvas.style.cursor !== value) canvas.style.cursor = value;
+      if (cursorEl.style.cursor !== value) cursorEl.style.cursor = value;
+    };
+    // After dragging the card, swallow the click it would otherwise deliver to whatever lies beneath
+    const swallowClick = (event: MouseEvent) => {
+      event.preventDefault();
+      event.stopPropagation();
     };
 
     const flip = (point: THREE.Vector3) => {
@@ -1409,6 +1422,10 @@ const Lanyard = ({
     const onPointerUp = (event: PointerEvent) => {
       if (!sim.grab) return;
       sim.grab = null;
+      if (passThrough) {
+        window.addEventListener('click', swallowClick, { capture: true, once: true });
+        setTimeout(() => window.removeEventListener('click', swallowClick, { capture: true }), 0);
+      }
       if (press && event.type === 'pointerup' && performance.now() - press.time < 450) flip(press.point);
       press = null;
       canvas.releasePointerCapture?.(event.pointerId);
@@ -1422,12 +1439,14 @@ const Lanyard = ({
       if (pickCard()) event.preventDefault();
     };
 
-    canvas.addEventListener('pointerdown', onPointerDown);
-    canvas.addEventListener('pointermove', onPointerMove);
-    canvas.addEventListener('pointerup', onPointerUp);
-    canvas.addEventListener('pointercancel', onPointerUp);
-    canvas.addEventListener('lostpointercapture', onPointerUp);
-    canvas.addEventListener('touchstart', onTouchStart, { passive: false });
+    const target: HTMLCanvasElement | Window = passThrough ? window : canvas;
+    if (passThrough) canvas.style.pointerEvents = 'none';
+    target.addEventListener('pointerdown', onPointerDown as EventListener);
+    target.addEventListener('pointermove', onPointerMove as EventListener);
+    target.addEventListener('pointerup', onPointerUp as EventListener);
+    target.addEventListener('pointercancel', onPointerUp as EventListener);
+    target.addEventListener('lostpointercapture', onPointerUp as EventListener);
+    target.addEventListener('touchstart', onTouchStart as EventListener, { passive: false });
 
     const resize = () => {
       view.width = Math.max(1, container.clientWidth);
@@ -1460,12 +1479,14 @@ const Lanyard = ({
       resizeObserver.disconnect();
       intersectionObserver.disconnect();
       document.removeEventListener('visibilitychange', onVisibility);
-      canvas.removeEventListener('pointerdown', onPointerDown);
-      canvas.removeEventListener('pointermove', onPointerMove);
-      canvas.removeEventListener('pointerup', onPointerUp);
-      canvas.removeEventListener('pointercancel', onPointerUp);
-      canvas.removeEventListener('lostpointercapture', onPointerUp);
-      canvas.removeEventListener('touchstart', onTouchStart);
+      target.removeEventListener('pointerdown', onPointerDown as EventListener);
+      target.removeEventListener('pointermove', onPointerMove as EventListener);
+      target.removeEventListener('pointerup', onPointerUp as EventListener);
+      target.removeEventListener('pointercancel', onPointerUp as EventListener);
+      target.removeEventListener('lostpointercapture', onPointerUp as EventListener);
+      target.removeEventListener('touchstart', onTouchStart as EventListener);
+      window.removeEventListener('click', swallowClick, { capture: true });
+      if (passThrough) document.documentElement.style.cursor = '';
       [bodyMesh, frontMesh, backMesh, ring, clampMesh, eyelet, band].forEach(mesh => mesh.geometry?.dispose());
       [frontMaterial, backMaterial, edgeMaterial, metalMaterial, bandMaterial].forEach(material => material.dispose());
       [frontTexture, backTexture, strapTexture, grain, weave].forEach(texture => texture.dispose());
@@ -1473,7 +1494,7 @@ const Lanyard = ({
       renderer.dispose();
       if (canvas.parentNode) canvas.parentNode.removeChild(canvas);
     };
-  }, []);
+  }, [passThrough]);
 
   return (
     <div ref={containerRef} className={`relative w-full h-full overflow-hidden ${className}`.trim()} style={style} />

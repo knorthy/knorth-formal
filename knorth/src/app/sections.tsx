@@ -3,7 +3,10 @@
 // The interactive pieces of the page. Each wraps one reusable component from
 // src/components and feeds it the portfolio's content in the page's ink and paper.
 import dynamic from "next/dynamic";
-import { useRef, useState, useSyncExternalStore } from "react";
+import { useEffect, useRef, useState, useSyncExternalStore } from "react";
+import { createPortal } from "react-dom";
+import { motion, useMotionValue, useSpring } from "motion/react";
+import { useReducedMotion } from "@/components/useReducedMotionSafe";
 import DriftWall from "@/components/DriftWall";
 import CardSwap, { type CardSwapHandle } from "@/components/CardSwap";
 import SlingButton from "@/components/SlingButton";
@@ -12,13 +15,19 @@ import type { IconType } from "react-icons";
 import {
   SiArduino, SiCplusplus, SiCss, SiDavinciresolve, SiEspressif, SiFigma, SiFirebase, SiFlutter,
   SiGit, SiGithub, SiJavascript, SiLaravel, SiMysql, SiNextdotjs, SiNodedotjs, SiPicsart,
-  SiCisco, SiDatacamp, SiPython, SiReact, SiSpringboot, SiSupabase, SiTailwindcss, SiTensorflow, SiTypescript, SiVercel,
+  SiPython, SiReact, SiSpringboot, SiSupabase, SiTailwindcss, SiTensorflow, SiTypescript, SiVercel,
 } from "react-icons/si";
 import {
   TbBrain, TbBrandAdobeAfterEffect, TbBrandAdobeIllustrator, TbBrandAdobePhotoshop,
-  TbBrandAdobePremiere, TbBrandAws, TbBrandVscode, TbBrush, TbRobot, TbSchool, TbScissors, TbTrophy,
+  TbBrandAdobePremiere, TbBrandAws, TbBrandVscode, TbBrush, TbSchool, TbScissors, TbTrophy,
 } from "react-icons/tb";
 import { content } from "./content";
+import cisco from "@/assets/logo/CISCO.png";
+import cvsu from "@/assets/logo/CVSU.png";
+import datacamp from "@/assets/logo/DATACAMP.png";
+import ibm from "@/assets/logo/IBM.png";
+import homeCredit from "@/assets/logo/HOMECREDIT.png";
+import tesda from "@/assets/logo/TESDA.png";
 
 // Canvas components need real colour values, not CSS variables. Keep in step with globals.css.
 const PALETTE = {
@@ -54,16 +63,47 @@ export function ThemeToggle({ className }: { className?: string }) {
 }
 
 
-// Design and build work drifting past under Experience: the gallery plus every project image.
-const galleryItems = [
-  ...content.gallery,
-  ...content.projects.map((p) => ({ image: p.image, title: p.title })),
-];
+// Photos drifting past under Experience: hackathons, competitions and the exchange program.
+const galleryItems = content.gallery;
 
+// Hovering a photo shows what it is in a small pill that trails the pointer and tilts with its
+// movement (the "Drag to spin" pill from the knorth portfolio). The text is written straight into
+// the DOM so the wall doesn't re-render on every mouse move. Mouse only: touch has no hover.
 export function GalleryWall() {
   const c = PALETTE[useTheme()];
+  const reduce = useReducedMotion();
+  const box = useRef<HTMLDivElement>(null);
+  const text = useRef<HTMLSpanElement>(null);
+  const lastY = useRef(0);
+  const x = useMotionValue(0);
+  const y = useMotionValue(0);
+  const opacity = useSpring(0, { stiffness: 300, damping: 30 });
+  const rotate = useSpring(0, { stiffness: 350, damping: 30, mass: 1 });
+
+  const onMove = (e: React.PointerEvent) => {
+    if (e.pointerType !== "mouse" || !box.current || !text.current) return;
+    const r = box.current.getBoundingClientRect();
+    const lx = e.clientX - r.left;
+    const ly = e.clientY - r.top;
+    x.set(lx + 14);
+    y.set(ly + 10);
+    rotate.set(reduce ? 0 : -(ly - lastY.current) * 0.6);
+    lastY.current = ly;
+    // On the tilted 3D plane the pointer often lands on the plane between tiles; like the wall's own
+    // lifted tile, keep the last photo's label until another photo is hit or the pointer leaves.
+    const tile = (e.target as HTMLElement).closest<HTMLElement>("[data-tile-id]");
+    const label = tile?.getAttribute("aria-label") || tile?.querySelector("img")?.alt || "";
+    if (!label) return;
+    text.current.textContent = label;
+    opacity.set(1);
+  };
+  const onLeave = () => {
+    opacity.set(0);
+    rotate.set(0);
+  };
+
   return (
-    <div className="h-[460px] md:h-[640px]">
+    <div ref={box} className="relative h-[460px] md:h-[640px]" onPointerMove={onMove} onPointerLeave={onLeave}>
       <DriftWall
         items={galleryItems}
         columns={7}
@@ -81,6 +121,13 @@ export function GalleryWall() {
         grayscale
         overlayColor={c.paper}
       />
+      <motion.div
+        aria-hidden
+        style={{ x, y, opacity, rotate }}
+        className="pointer-events-none absolute top-0 left-0 z-10 rounded-full border border-rule bg-paper/90 px-3 py-1.5 backdrop-blur-sm"
+      >
+        <span ref={text} className="font-mono text-xs whitespace-nowrap text-ink" />
+      </motion.div>
     </div>
   );
 }
@@ -89,23 +136,87 @@ export function GalleryWall() {
 // Three.js only runs in the browser, so it loads client-side.
 const Lanyard = dynamic(() => import("@/components/Lanyard"), { ssr: false });
 
+// Room below the hero so a thrown or dragged card is never cut off at the bottom.
+const LANYARD_EXTRA = 320;
+
+// The grid cell below is an empty placeholder. On desktop it has no height of its own (it stretches to
+// the text column), so the hero is sized by its text alone and the lanyard never adds space. The
+// lanyard itself renders into a page-wide layer portalled to <body> (absolute, z-50: above the header
+// and hero, under Kniah's paw at z-60 and the chat overlay at z-100), lined up with the placeholder,
+// so the card can swing or be dragged anywhere without hitting a box edge. `passThrough` keeps that
+// layer click-through everywhere except on the card itself.
 export function HeroLanyard() {
+  const slot = useRef<HTMLDivElement>(null);
+  const [box, setBox] = useState<{
+    top: number;
+    width: number;
+    height: number;
+    anchor: number;
+    size: number;
+    strap: number;
+  } | null>(null);
+
+  useEffect(() => {
+    const el = slot.current;
+    if (!el) return;
+    const measure = () => {
+      const r = el.getBoundingClientRect();
+      const width = document.documentElement.clientWidth; // excludes the scrollbar: no sideways scroll
+      const slotTop = r.top + window.scrollY;
+      const desktop = window.matchMedia("(min-width: 768px)").matches;
+      // Desktop: the placeholder is exactly as tall as the text column beside it. The card is centred
+      // on that column and the strap runs from the very top of the page down to it.
+      // Phone: the placeholder sits under the text; the card hangs near its bottom.
+      const card = desktop ? Math.min(360, Math.max(260, r.height * 0.9)) : 200;
+      const top = desktop ? 0 : slotTop;
+      const cardTop = desktop ? slotTop + (r.height - card) / 2 - top : r.height - card - 24;
+      const H = cardTop + card + LANYARD_EXTRA;
+      // Lanyard sizing: card height = size * H; card top = (0.12 + 0.3 * strapLength) * H.
+      setBox({
+        top,
+        width,
+        height: H,
+        anchor: (r.left + r.width / 2) / width,
+        size: card / H,
+        strap: Math.max(0, (cardTop / H - 0.12) / 0.3),
+      });
+    };
+    const ro = new ResizeObserver(measure);
+    ro.observe(el);
+    ro.observe(document.documentElement);
+    return () => ro.disconnect();
+  }, []);
+
   return (
-    // Reaches up through the hero's top padding so the strap hangs from just under the header.
-    <div className="-mt-12 h-[480px] md:-mt-[clamp(3rem,16vh,9rem)] md:h-[760px]">
-      <Lanyard
-        frontImage="/lanyard/front.webp"
-        backImage="/lanyard/back.svg"
-        strapImage="/lanyard/strap.svg"
-        imageFit="contain"
-        cardColor="#fafaf8"
-        strapColor="#141413"
-        metal="graphite"
-        finish="glossy"
-        size={0.46}
-        strapLength={0.55}
-        grayscale
-      />
+    <div
+      ref={slot}
+      aria-hidden
+      className="pointer-events-none -mt-12 h-[400px] md:mt-0 md:h-auto md:self-stretch"
+    >
+      {box &&
+        createPortal(
+          <div
+            className="pointer-events-none absolute left-0 z-50"
+            style={{ top: box.top, width: box.width, height: box.height }}
+          >
+            <Lanyard
+              frontImage="/lanyard/front.webp"
+              backImage="/lanyard/back.svg"
+              strapImage="/lanyard/strap.svg"
+              imageFit="contain"
+              cardColor="#fafaf8"
+              strapColor="#141413"
+              metal="graphite"
+              finish="glossy"
+              anchor={box.anchor}
+              size={box.size}
+              strapLength={box.strap}
+              grayscale
+              passThrough
+            />
+          </div>,
+          document.body,
+        )}
     </div>
   );
 }
@@ -133,18 +244,26 @@ export function ProjectDeck() {
         <p className="mt-6 max-w-[48ch] leading-[1.6] text-pretty text-muted">{p.description}</p>
         <p className="mt-4 text-sm">{p.tools}</p>
         <div className="mt-8 flex flex-wrap items-center gap-x-10 gap-y-6">
-          {/* "Learn more" asks Kniah about this project (ChatWidget listens for "kniah:ask"); the small
-              sling in place of its arrow swaps to the next project when tapped or pulled and let go. */}
+          {/* "Learn more" opens the project's repo when it has one, otherwise asks Kniah about it
+              (ChatWidget listens for "kniah:ask"); the small sling in place of its arrow swaps to the
+              next project when tapped or pulled and let go. */}
           <span className="inline-flex items-center gap-2.5 text-sm">
-            <button
-              type="button"
-              onClick={() =>
-                window.dispatchEvent(new CustomEvent("kniah:ask", { detail: `tell me more about ${p.title}` }))
-              }
-              className="inline-flex min-h-11 cursor-pointer items-center"
-            >
-              <span className="link">Learn more</span>
-            </button>
+            {p.href ? (
+              <a href={p.href} target="_blank" rel="noopener noreferrer" className="inline-flex min-h-11 items-center">
+                <span className="link">Learn more</span>
+                <span className="sr-only"> about {p.title} on GitHub (opens in a new tab)</span>
+              </a>
+            ) : (
+              <button
+                type="button"
+                onClick={() =>
+                  window.dispatchEvent(new CustomEvent("kniah:ask", { detail: `tell me more about ${p.title}` }))
+                }
+                className="inline-flex min-h-11 cursor-pointer items-center"
+              >
+                <span className="link">Learn more</span>
+              </button>
+            )}
             <SlingButton
               onSend={() => deck.current?.next()}
               ariaLabel="Next project"
@@ -220,53 +339,117 @@ export function SkillsLoop() {
 }
 
 // Education and credentials as two ruled columns, each entry led by its logo drawn in ink.
-const LOGOS: Record<string, IconType> = {
-  Cisco: SiCisco,
-  DataCamp: SiDatacamp,
-  TESDA: TbRobot,
-  "KadaKareer x Home Credit": TbTrophy,
+// Issuer and school logos from src/assets/logo, matched on a name inside the entry's org. An entry
+// with no matching logo falls back to an icon.
+const LOGOS: Record<string, string> = {
+  Cisco: cisco.src,
+  DataCamp: datacamp.src,
+  IBM: ibm.src,
+  "Home Credit": homeCredit.src,
+  TESDA: tesda.src,
+  "Cavite State University": cvsu.src,
 };
+// Matches on the name appearing in the org, so "TESDA National Certificate" still finds TESDA.
+const logoFor = (org: string) => Object.entries(LOGOS).find(([name]) => org.includes(name))?.[1];
 
 // Laid out like immanbufi.dev: 12px column heading over a hairline, then entries led by a 120px logo,
 // an 11px issuer, the title, a subtitle, a 12px date and an optional link. Two credentials show up
 // front; "View all credentials" opens the rest in place.
 function Entry(props: {
   Logo?: IconType;
+  /** a logo image, drawn as a mask in the ink colour so it follows light and dark */
+  logoSrc?: string;
   label?: string;
   title: string;
   sub?: string;
   when?: string;
   href?: string;
+  /** link text: "Show credential" for certificates, "Learn more" for awards */
+  linkLabel?: string;
+  /** with no href, the link asks Kniah this instead */
+  ask?: string;
+  /** put the date on the label line ("WHITESTRINGS · Jun 2026 — Present") instead of its own line */
+  dateInLabel?: boolean;
+  /** several positions at one company, newest first, drawn as a small timeline */
+  roles?: { title: string; when: string; text?: string; skills?: string }[];
+  /** show the roles timeline (toggled by the column's "Learn more") */
+  rolesOpen?: boolean;
 }) {
+  const inline = props.dateInLabel && props.when;
+  const linkClass =
+    "mt-1 inline-flex min-h-11 cursor-pointer items-center font-mono text-xs text-muted transition-colors hover:text-ink";
   return (
     <li className="flex gap-6">
-      {props.Logo && (
-        <span className="flex w-[120px] shrink-0 items-center justify-start self-start pt-1 text-ink">
-          <props.Logo aria-hidden size={72} />
-        </span>
+      {props.logoSrc ? (
+        // The logo files are white on transparent; using them as a mask over the ink colour keeps
+        // them monochrome and visible on both the light and the dark page.
+        <span
+          aria-hidden
+          className="block h-[72px] w-[120px] shrink-0 self-start bg-ink"
+          style={{
+            maskImage: `url(${props.logoSrc})`,
+            WebkitMaskImage: `url(${props.logoSrc})`,
+            maskSize: "contain",
+            WebkitMaskSize: "contain",
+            maskRepeat: "no-repeat",
+            WebkitMaskRepeat: "no-repeat",
+            maskPosition: "left center",
+            WebkitMaskPosition: "left center",
+          }}
+        />
+      ) : (
+        props.Logo && (
+          <span className="flex w-[120px] shrink-0 items-center justify-start self-start pt-1 text-ink">
+            <props.Logo aria-hidden size={72} />
+          </span>
+        )
       )}
       <span className="min-w-0">
         {props.label && (
-          <span className="block font-mono text-[11px] leading-snug tracking-[0.08em] text-muted uppercase">
-            {props.label}
+          <span className="block font-mono text-[11px] leading-snug tracking-[0.08em] text-muted">
+            <span className="uppercase">{props.label}</span>
+            {inline && <span className="whitespace-nowrap tabular-nums"> · {props.when}</span>}
           </span>
         )}
         <span className="mt-1 block font-pixel text-[clamp(1.0625rem,1.6vw,1.375rem)] leading-tight tracking-[-0.02em]">
           {props.title}
         </span>
         {props.sub && <span className="mt-1.5 block text-sm text-muted">{props.sub}</span>}
-        {props.when && (
-          <span className="mt-2 block font-mono text-xs text-muted tabular-nums">{props.when}</span>
+        {props.roles && props.rolesOpen && (
+          <ol className="mt-5 flex flex-col gap-5 border-l border-rule pl-5">
+            {props.roles.map((r) => (
+              <li key={r.title} className="relative">
+                <span aria-hidden className="absolute top-[0.55em] -left-[23.5px] size-[7px] rounded-full bg-muted" />
+                <span className="block font-pixel text-[17px] leading-tight">{r.title}</span>
+                <span className="mt-1 block font-mono text-xs text-muted tabular-nums">{r.when}</span>
+                {r.text && <span className="mt-1.5 block text-sm text-muted">{r.text}</span>}
+                {r.skills && <span className="mt-1.5 block font-mono text-xs text-ink">{r.skills}</span>}
+              </li>
+            ))}
+          </ol>
         )}
-        {props.href && (
-          <a
-            href={props.href}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="mt-4 inline-flex min-h-11 items-center text-sm text-muted transition-colors hover:text-ink"
-          >
-            View credential<span aria-hidden>&#8599;</span>
+        {props.when && !inline && (
+          <span className="mt-1.5 block font-mono text-sm text-muted tabular-nums">{props.when}</span>
+        )}
+        {props.href ? (
+          <a href={props.href} target="_blank" rel="noopener noreferrer" className={linkClass}>
+            <span className="link">{props.linkLabel ?? "Learn more"}</span>
+            <span aria-hidden className="ml-1">&#8599;</span>
+            <span className="sr-only"> about {props.title} (opens in a new tab)</span>
           </a>
+        ) : (
+          props.ask && (
+            // No page yet: ask Kniah about it (ChatWidget listens for "kniah:ask")
+            <button
+              type="button"
+              onClick={() => window.dispatchEvent(new CustomEvent("kniah:ask", { detail: props.ask }))}
+              className={linkClass}
+            >
+              <span className="link">{props.linkLabel ?? "Learn more"}</span>
+              <span aria-hidden className="ml-1">&rarr;</span>
+              <span className="sr-only"> about {props.title}: asks Kniah</span>
+            </button>
+          )
         )}
       </span>
     </li>
@@ -277,21 +460,99 @@ const head =
   "mb-7 border-b border-rule pb-3.5 font-sans text-xs font-medium tracking-[0.08em] text-muted uppercase";
 
 // Same column style as the credentials, text only: work on the left, leadership and volunteering right.
-export function ExperienceGrid() {
-  const column = (title: string, items: { title: string; org: string; sub?: string; when: string }[]) => (
-    <div>
-      <h3 className={head}>{title}</h3>
-      <ul className="flex flex-col gap-10">
-        {items.map((e) => (
-          <Entry key={`${e.title}-${e.org}`} label={e.org} title={e.title} sub={e.sub} when={e.when} />
-        ))}
-      </ul>
-    </div>
+// "View all …" under a shortened list; opens the rest in place, "Show fewer" folds it back.
+function ShowAll(props: {
+  open: boolean;
+  onToggle: () => void;
+  controls: string;
+  label?: string;
+  closedLabel?: string;
+  openLabel?: string;
+}) {
+  return (
+    <button
+      type="button"
+      aria-expanded={props.open}
+      aria-controls={props.controls}
+      onClick={props.onToggle}
+      className="mt-8 inline-flex min-h-11 cursor-pointer items-center text-sm text-muted transition-colors hover:text-ink"
+    >
+      {props.open ? (props.openLabel ?? "Show fewer") : (props.closedLabel ?? `View all ${props.label}`)}
+      <span aria-hidden className="ml-1">
+        {props.open ? "\u2191" : "\u2192"}
+      </span>
+    </button>
   );
+}
+
+// Leadership shows as many entries as work experience up front, so the two columns start even.
+const LEADERSHIP_UP_FRONT = content.experience.length;
+
+export function ExperienceGrid() {
+  const [all, setAll] = useState(false);
+  // "Learn more" under Work experience unfolds the role-by-role detail (e.g. whiteStrings' three roles).
+  const [more, setMore] = useState(false);
+  // Work puts "company · date" on one line; leadership keeps the date on its own line.
+  const column = (
+    items: {
+      title: string;
+      org: string;
+      sub?: string;
+      when: string;
+      roles?: { title: string; when: string; text?: string; skills?: string }[];
+    }[],
+    id: string,
+    work = false,
+  ) => (
+    <ul id={id} className="flex flex-col gap-10">
+      {items.map((e) => (
+        <Entry
+          key={`${e.title}-${e.org}`}
+          label={e.org}
+          title={e.title}
+          sub={e.sub}
+          when={e.when}
+          roles={e.roles}
+          rolesOpen={work && more}
+          dateInLabel={work}
+        />
+      ))}
+    </ul>
+  );
+  const leadership = all ? content.leadership : content.leadership.slice(0, LEADERSHIP_UP_FRONT);
   return (
     <div className="grid gap-x-16 gap-y-12 md:grid-cols-2">
-      {column("Work experience", content.experience)}
-      {column("Leadership & volunteering", content.leadership)}
+      {/* Each column is a flex column and its toggle sits in an mt-auto wrapper, so "Learn more" and
+          "View all leadership & volunteering" share a baseline however long either list is. */}
+      <div className="flex flex-col">
+        <h3 className={head}>Work experience</h3>
+        {column(content.experience, "work-list", true)}
+        {content.experience.some((e) => "roles" in e) && (
+          <div className="mt-auto">
+            <ShowAll
+              open={more}
+              onToggle={() => setMore((v) => !v)}
+              controls="work-list"
+              closedLabel="Learn more"
+              openLabel="Show less"
+            />
+          </div>
+        )}
+      </div>
+      <div className="flex flex-col">
+        <h3 className={head}>Leadership &amp; volunteering</h3>
+        {column(leadership, "leadership-list")}
+        {content.leadership.length > LEADERSHIP_UP_FRONT && (
+          <div className="mt-auto">
+            <ShowAll
+              open={all}
+              onToggle={() => setAll((v) => !v)}
+              controls="leadership-list"
+              label="leadership & volunteering"
+            />
+          </div>
+        )}
+      </div>
     </div>
   );
 }
@@ -305,7 +566,7 @@ export function CredentialsGrid() {
         <h3 className={head}>Education</h3>
         <ul className="flex flex-col gap-12">
           {content.education.map((e) => (
-            <Entry key={e.title} Logo={TbSchool} title={e.title} sub={e.org} when={e.when} />
+            <Entry key={e.title} Logo={TbSchool} logoSrc={logoFor(e.org)} title={e.title} sub={e.org} when={e.when} />
           ))}
         </ul>
       </div>
@@ -315,28 +576,20 @@ export function CredentialsGrid() {
           {shown.map((c) => (
             <Entry
               key={c.title}
-              Logo={LOGOS[c.org] ?? TbTrophy}
+              Logo={TbTrophy}
+              logoSrc={logoFor(c.org)}
               label={c.org}
               title={c.title}
               sub={"sub" in c ? c.sub : undefined}
-              when={c.when && `Issued ${c.when}`}
-              href={"href" in c ? (c.href as string) : undefined}
+              when={"award" in c ? c.when : c.when && `Issued ${c.when}`}
+              href={c.href}
+              linkLabel={"award" in c ? "Learn more" : "Show credential"}
+              ask={`tell me about her ${c.title} ${"award" in c ? "win" : "certificate"} from ${c.org}`}
             />
           ))}
         </ul>
         {content.credentials.length > 2 && (
-          <button
-            type="button"
-            aria-expanded={all}
-            aria-controls="credential-list"
-            onClick={() => setAll((v) => !v)}
-            className="mt-8 inline-flex min-h-11 cursor-pointer items-center text-sm text-muted transition-colors hover:text-ink"
-          >
-            {all ? "Show fewer" : "View all credentials"}
-            <span aria-hidden className="ml-1">
-              {all ? "↑" : "→"}
-            </span>
-          </button>
+          <ShowAll open={all} onToggle={() => setAll((v) => !v)} controls="credential-list" label="credentials" />
         )}
       </div>
     </div>

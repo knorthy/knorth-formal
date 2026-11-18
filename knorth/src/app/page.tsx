@@ -12,6 +12,7 @@ import {
   ThemeToggle,
 } from "./sections";
 import ChatWidget from "@/components/chat/ChatWidget";
+import SkillTerminal from "./skill-terminal";
 
 // Type scale: four sizes only. text-sm (meta), text-lg (text), `title`, `display`.
 const wrap = "mx-auto w-full max-w-[1040px] px-6";
@@ -20,10 +21,10 @@ const row =
   "border-b border-rule py-4 first:pt-0 last:border-b-0 last:pb-0 sm:flex sm:items-baseline sm:justify-between sm:gap-x-6";
 
 const sections = [
+  "Credentials",
   "Projects",
   "Skills",
   "Experience",
-  "Credentials",
 ];
 
 function Arrow() {
@@ -65,14 +66,21 @@ function Section(props: { id: string; title: string; children: ReactNode }) {
 }
 
 function Rows(props: {
-  items: { title: string; org: string; when: string }[];
+  items: { title: string; org: string; when: string; href?: string }[];
 }) {
   return (
     <ul>
       {props.items.map((item) => (
         <li key={`${item.title}-${item.org}`} className={row}>
           <span className="flex flex-wrap items-baseline gap-x-3">
-            <span className="font-medium">{item.title}</span>
+            {item.href ? (
+              <a href={item.href} target="_blank" rel="noopener noreferrer" className="inline-flex items-baseline font-medium">
+                <span className="link">{item.title}</span>
+                <Arrow />
+              </a>
+            ) : (
+              <span className="font-medium">{item.title}</span>
+            )}
             <span className="text-muted">{item.org}</span>
           </span>
           {item.when && (
@@ -177,6 +185,13 @@ export default function Home() {
           <HeroLanyard />
         </section>
 
+        <section id="credentials" aria-label="Education and credentials">
+          <div className="draw draw-view h-px bg-rule" />
+          <div className="py-14 md:py-20">
+            <CredentialsGrid />
+          </div>
+        </section>
+
         <section
           id="projects"
           aria-labelledby="projects-title"
@@ -203,14 +218,7 @@ export default function Home() {
           <div className="mb-10">
             <SkillsLoop />
           </div>
-          <dl>
-            {content.skills.map((s) => (
-              <div key={s.group} className={`${row} sm:flex-row-reverse`}>
-                <dt className="text-sm text-muted">{s.group}</dt>
-                <dd>{s.items}</dd>
-              </div>
-            ))}
-          </dl>
+          <SkillTerminal />
         </Section>
 
         <section id="experience" aria-label="Experience">
@@ -228,7 +236,7 @@ export default function Home() {
               Gallery
             </h2>
             <p className="max-w-[54ch] text-muted">
-              Interfaces, posters, motion and hardware. Hover a tile to bring it forward in colour.
+              Hackathons, conferences, competitions and an exchange program, away from the screen. Hover a photo to bring it forward in colour.
             </p>
           </div>
           <div className="pb-14 md:pb-20">
@@ -236,12 +244,6 @@ export default function Home() {
           </div>
         </section>
 
-        <section id="credentials" aria-label="Education and credentials">
-          <div className="draw draw-view h-px bg-rule" />
-          <div className="py-14 md:py-20">
-            <CredentialsGrid />
-          </div>
-        </section>
       </main>
 
       <ContactFooter />

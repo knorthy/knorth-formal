@@ -109,3 +109,23 @@ summary::-webkit-details-marker {
     transform: translateY(10px);
   }
 }
+
+/* Skills terminal: suggested commands drift left to right, pausing when hovered or focused. */
+.skill-marquee-track {
+  animation: skill-marquee 40s linear infinite;
+}
+.skill-marquee:hover .skill-marquee-track,
+.skill-marquee:focus-within .skill-marquee-track {
+  animation-play-state: paused;
+}
+@keyframes skill-marquee {
+  from { transform: translateX(-50%); }
+  to { transform: translateX(0); }
+}
+.skill-bar {
+  transition: width 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+}
+@media (prefers-reduced-motion: reduce) {
+  .skill-marquee-track { animation: none; }
+  .skill-bar { transition: none; }
+}

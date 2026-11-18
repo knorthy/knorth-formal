@@ -2,8 +2,17 @@
 // anything the portfolio doesn't already show. Edit src/app/content.ts, not this.
 import { content as c } from "@/app/content";
 
-const list = (items: { title: string; org: string; when: string; sub?: string }[]) =>
-  items.map((i) => `- ${i.title}, ${i.org}${i.sub ? ` (${i.sub})` : ""}${i.when ? `, ${i.when}` : ""}`).join("\n");
+type Role = { title: string; when: string; text?: string; skills?: string };
+const list = (items: { title: string; org: string; when: string; sub?: string; roles?: Role[] }[]) =>
+  items
+    .map(
+      (i) =>
+        `- ${i.title}, ${i.org}${i.sub ? ` (${i.sub})` : ""}${i.when ? `, ${i.when}` : ""}` +
+        (i.roles ?? [])
+          .map((r) => `\n  - ${r.title}, ${r.when}.${r.text ? ` ${r.text}` : ""}${r.skills ? ` Skills: ${r.skills}.` : ""}`)
+          .join(""),
+    )
+    .join("\n");
 
 function facts(): string {
   const links = c.links.map((l) => `${l.label} ${l.href}`).join(", ");
