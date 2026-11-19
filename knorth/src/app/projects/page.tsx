@@ -47,9 +47,7 @@ export default function ProjectsPage() {
       intro="Mobile apps, web builds, a 3D game and embedded hardware, grouped by what they are. Each links to its code where the code is public."
       count={`${total} projects`}
     >
-      <div className="[&_img]:grayscale">
-        <GroupedCards groups={groups()} noun="project" label="Filter by type" />
-      </div>
+      <GroupedCards groups={groups()} noun="project" label="Filter by type" />
     </PageShell>
   );
 }

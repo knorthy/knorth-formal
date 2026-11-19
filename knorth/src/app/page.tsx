@@ -107,11 +107,11 @@ export default function Home() {
                 speed={45}
                 encryptedClassName="text-muted"
               />
-              <span className="block font-medium text-muted">
+              <span className="mt-2 block text-[clamp(1.25rem,3vw,1.75rem)] font-medium tracking-[-0.02em] text-muted">
                 {content.title}
               </span>
             </h1>
-            <p className="mt-7 max-w-[54ch] leading-[1.6] text-pretty">
+            <p className="mt-7 max-w-[54ch] text-base leading-[1.6] text-pretty">
               {content.bio}
             </p>
             <p className="mt-3">
@@ -134,7 +134,7 @@ export default function Home() {
                 <Arrow />
               </ResumeLink>
             </p>
-            <p className="mt-1 text-muted">{content.status}</p>
+            <p className="mt-1 text-sm text-muted">{content.status}</p>
           </div>
 
           <HeroLanyard />
@@ -197,8 +197,8 @@ export default function Home() {
             <h2 id="gallery-title" className="text-lg font-medium">
               Gallery
             </h2>
-            <p className="max-w-[54ch] text-muted">
-              Hackathons, conferences, competitions and an exchange program, away from the screen. Hover a photo to bring it forward in colour.
+            <p className="text-[15px] text-balance text-muted">
+              Where I&apos;ve been and what I&apos;ve been up to lately, caught on camera along the way. Hover a photo to bring it forward in colour.
             </p>
           </div>
           <div className="pb-14 md:pb-20">

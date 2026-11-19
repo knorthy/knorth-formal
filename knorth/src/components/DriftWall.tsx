@@ -207,10 +207,22 @@ const DriftWall = ({
       rafRef.current = requestAnimationFrame(animate);
     };
 
-    rafRef.current = requestAnimationFrame(animate);
-    return () => {
+    // Only animate while the wall is on screen: a 3D plane of tiles repainting every frame is costly.
+    const start = () => {
+      if (rafRef.current != null) return;
+      lastTsRef.current = null;
+      rafRef.current = requestAnimationFrame(animate);
+    };
+    const stop = () => {
       if (rafRef.current) cancelAnimationFrame(rafRef.current);
       rafRef.current = null;
+    };
+    const observer = new IntersectionObserver(([entry]) => (entry.isIntersecting ? start() : stop()));
+    if (containerRef.current) observer.observe(containerRef.current);
+    else start();
+    return () => {
+      observer.disconnect();
+      stop();
       lastTsRef.current = null;
     };
   }, [baseVelocities, columnMeta, pauseOnHover, parallax, reduced, applyPlaneTransform]);

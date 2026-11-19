@@ -85,7 +85,7 @@ function Zoom({ src, gallery = [src], title }: { src: string; gallery?: string[]
         className="absolute inset-0 cursor-zoom-in"
       >
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={src} alt="" className="size-full object-contain p-4" />
+        <img src={src} alt="" loading="lazy" decoding="async" className="size-full object-contain p-4" />
       </button>
       <dialog
         ref={ref}
@@ -100,7 +100,7 @@ function Zoom({ src, gallery = [src], title }: { src: string; gallery?: string[]
         <div className={`grid gap-4 ${gallery.length > 1 ? "grid-cols-2 place-items-center" : ""}`}>
           {gallery.map((g, i) => (
             // eslint-disable-next-line @next/next/no-img-element
-            <img key={g} src={g} alt={gallery.length > 1 ? `${title}, certificate ${i + 1}` : title} className={`rounded-xl object-contain ${gallery.length > 1 ? "max-h-[42vh] max-w-[46vw]" : "max-h-[88vh] max-w-[92vw]"}`} />
+            <img key={g} src={g} loading="lazy" decoding="async" alt={gallery.length > 1 ? `${title}, certificate ${i + 1}` : title} className={`rounded-xl object-contain ${gallery.length > 1 ? "max-h-[42vh] max-w-[46vw]" : "max-h-[88vh] max-w-[92vw]"}`} />
           ))}
         </div>
       </dialog>

@@ -220,7 +220,7 @@ export function ProjectDeck() {
         </p>
         <h3 className="mt-3 text-[clamp(2rem,5vw,3.25rem)] leading-[1.05] tracking-[-0.02em]">{p.title}</h3>
         <p className="mt-2 text-sm text-muted">{p.kind}</p>
-        <p className="mt-6 max-w-[48ch] leading-[1.6] text-pretty text-muted">{p.description}</p>
+        <p className="mt-6 max-w-[48ch] text-[15px] leading-[1.6] text-pretty text-muted">{p.description}</p>
         <p className="mt-4 text-sm">{p.tools}</p>
         <div className="mt-8 flex flex-wrap items-center gap-x-10 gap-y-6">
           {/* "See more" opens /projects; the small sling in place of its arrow swaps to the next
@@ -251,7 +251,7 @@ export function ProjectDeck() {
         </div>
       </div>
       <PointerLabel
-        className="h-[360px] min-w-0 [&_img]:grayscale sm:h-[500px] md:-mr-24"
+        className="h-[360px] min-w-0 [&_img]:grayscale [&_img]:transition-[filter] [&_img]:duration-300 [&_[data-swap-index]:hover_img]:grayscale-0 sm:h-[500px]"
         labelOf={(t) => content.projects[Number(t.closest("[data-swap-index]")?.getAttribute("data-swap-index"))]?.title ?? ""}
       >
         <CardSwap
@@ -501,11 +501,11 @@ const ICONS = {
   LinkedIn: "M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 0 1-2.063-2.065 2.064 2.064 0 1 1 2.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z",
 } as const;
 
-// Contact and footer in one dark block: brand and links, about and socials, then the form.
+// Contact and footer in one block, in the page colours: brand and links, about and socials, then the form.
 // The form posts to /api/contact, which emails the message (see api/contact/route.ts).
 const field =
-  "w-full rounded-[10px] border border-white/10 bg-white/5 px-[18px] py-3.5 text-sm text-white outline-none transition-colors placeholder:text-white/30 focus:border-white/50";
-const faint = "text-white/45";
+  "w-full rounded-[10px] border border-ink/10 bg-ink/5 px-[18px] py-3.5 text-sm text-ink outline-none transition-colors placeholder:text-ink/30 focus:border-ink/50";
+const faint = "text-ink/45";
 
 // The year is read in the browser only: a prerendered page can't hold the current date.
 const noop = () => () => {};
@@ -513,7 +513,6 @@ const useYear = () => useSyncExternalStore(noop, () => new Date().getFullYear(),
 
 export function ContactFooter() {
   const year = useYear();
-  const firstName = content.name.split(" ")[0];
   const [status, setStatus] = useState<"idle" | "sending" | "sent" | "error">("idle");
   const send = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -527,90 +526,69 @@ export function ContactFooter() {
     if (res?.ok) form.reset();
     setStatus(res?.ok ? "sent" : "error");
   };
-  const nav = [
-    ["Home", "#main"],
-    ["Projects", "#projects"],
-    ["Experience", "#experience"],
-    ["Credentials", "#credentials"],
-  ];
-
   return (
     <section
       id="contact"
       aria-labelledby="contact-title"
-      className="relative mt-14 flex min-h-svh flex-col justify-center overflow-hidden bg-[#0d0d0d] px-[8vw] pt-20 pb-16 text-white md:mt-20"
+      className="relative mt-14 flex min-h-[min(100svh,46rem)] flex-col justify-center overflow-hidden bg-paper px-6 pt-20 pb-16 text-ink md:mt-20"
     >
       <h2 id="contact-title" className="sr-only">
         Contact
       </h2>
-      <div className="relative z-10 flex flex-col justify-between gap-[60px] md:flex-row md:flex-wrap">
-        <div className="flex max-w-[280px] flex-col gap-5">
-          <span className="text-lg font-semibold tracking-[-0.2px]">{content.name}</span>
-          <p className={`text-sm leading-[1.7] ${faint}`}>
-            {content.title}. {content.status}.
+      <div className="relative z-10 mx-auto grid w-full max-w-[1040px] gap-x-16 gap-y-12 md:grid-cols-2 md:items-center">
+        <div className="flex flex-col gap-6">
+          <h3 className="text-[clamp(1.5rem,3.4vw,2.25rem)] leading-[1.1] tracking-[-0.02em]">
+            Let&apos;s build something together.
+          </h3>
+          <p className={`max-w-[40ch] text-sm leading-[1.7] ${faint}`}>
+            Got a role, a project or an idea? Send a message and I&apos;ll get back to you.
           </p>
-          <nav aria-label="Footer" className="mt-2 flex flex-col gap-3 text-sm">
-            {nav.map(([label, href]) => (
-              <a key={label} href={href} className="w-fit text-white/50 transition-colors hover:text-white">
-                {label}
+          <a href={`mailto:${content.email}`} className="w-fit text-sm">
+            <span className="link">{content.email}</span>
+          </a>
+          <div className="flex gap-3">
+            {content.links.map((l) => (
+              <a
+                key={l.label}
+                href={l.href}
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label={l.label}
+                className="flex size-11 items-center justify-center rounded-lg border border-ink/10 bg-ink/[0.07] text-ink/60 transition-colors hover:border-ink/20 hover:bg-ink/[0.12] hover:text-ink"
+              >
+                <svg viewBox="0 0 24 24" fill="currentColor" width="18" height="18" aria-hidden>
+                  <path d={ICONS[l.label as keyof typeof ICONS]} />
+                </svg>
               </a>
             ))}
-          </nav>
-          <p className="mt-4 text-sm text-white/25">
-            © {year} {content.name}. Built with care.
-          </p>
-        </div>
-
-        <div className="flex max-w-[260px] flex-col gap-6">
-          <h3 className="font-semibold text-white/90">About {firstName}</h3>
-          <p className={`text-sm leading-[1.75] ${faint}`}>{content.bio}</p>
-          <div>
-            <p className="mb-2.5 text-sm font-semibold text-white/40">Follow me</p>
-            <div className="flex gap-3">
-              {content.links.map((l) => (
-                <a
-                  key={l.label}
-                  href={l.href}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  aria-label={l.label}
-                  className="flex size-11 items-center justify-center rounded-lg border border-white/10 bg-white/[0.07] text-white/60 transition-colors hover:border-white/20 hover:bg-white/[0.12] hover:text-white"
-                >
-                  <svg viewBox="0 0 24 24" fill="currentColor" width="18" height="18" aria-hidden>
-                    <path d={ICONS[l.label as keyof typeof ICONS]} />
-                  </svg>
-                </a>
-              ))}
-            </div>
           </div>
         </div>
 
-        <div className="w-full max-w-[480px] flex-1 md:min-w-[320px]">
-          <h3 className="mb-5 text-[clamp(1.125rem,2vw,1.375rem)] font-semibold">
-            Send me a message
-          </h3>
-          <form onSubmit={send} className="flex flex-col gap-3">
-            <input name="name" type="text" required placeholder="Your name" aria-label="Your name" className={field} />
-            <input name="email" type="email" required placeholder="Your email" aria-label="Your email" className={field} />
-            <textarea name="message" required rows={5} placeholder="Message" aria-label="Message" className={`${field} resize-none`} />
-            <button
-              type="submit"
-              disabled={status === "sending"}
-              className="w-full cursor-pointer rounded-[10px] bg-white p-3.5 text-[15px] font-semibold text-[#0a0c0a] transition-[background,transform] hover:-translate-y-0.5 hover:bg-white/80 active:translate-y-0"
-            >
-              {status === "sending" ? "Sending..." : "Send message"}
-            </button>
-            <p role="status" className={`min-h-5 text-sm ${status === "error" ? "text-red-300" : "text-white/60"}`}>
-              {status === "sent" && "Thanks, your message was sent."}
-              {status === "error" && `Couldn't send that. Please try again, or email ${content.email}.`}
-            </p>
-          </form>
-        </div>
+        <form onSubmit={send} className="flex flex-col gap-3">
+          <input name="name" type="text" required placeholder="Your name" aria-label="Your name" className={field} />
+          <input name="email" type="email" required placeholder="Your email" aria-label="Your email" className={field} />
+          <textarea name="message" required rows={5} placeholder="Message" aria-label="Message" className={`${field} resize-none`} />
+          <button
+            type="submit"
+            disabled={status === "sending"}
+            className="w-full cursor-pointer rounded-[10px] bg-ink p-3.5 text-[15px] font-semibold text-paper transition-[background,transform] hover:-translate-y-0.5 hover:bg-ink/80 active:translate-y-0"
+          >
+            {status === "sending" ? "Sending..." : "Send message"}
+          </button>
+          <p role="status" className={`min-h-5 text-sm ${status === "error" ? "text-red-600 dark:text-red-300" : "text-ink/60"}`}>
+            {status === "sent" && "Thanks, your message was sent."}
+            {status === "error" && `Couldn't send that. Please try again, or email ${content.email}.`}
+          </p>
+        </form>
       </div>
+
+      <p className="relative z-10 mx-auto mt-16 w-full max-w-[1040px] text-sm text-ink/30">
+        © {year} {content.name}
+      </p>
 
       <div
         aria-hidden
-        className="pointer-events-none absolute bottom-0 left-0 z-0 w-full translate-y-1/2 text-center text-[19vw] leading-none font-extrabold tracking-[-0.02em] whitespace-nowrap text-white/5 select-none"
+        className="pointer-events-none absolute bottom-0 left-0 z-0 w-full translate-y-1/2 text-center text-[min(19vw,22rem)] leading-none font-extrabold tracking-[-0.02em] whitespace-nowrap text-ink/5 select-none"
       >
         DEVELOP
       </div>

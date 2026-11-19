@@ -6,22 +6,22 @@
 // certificate picture in /public) fills its card's top panel instead of the issuer's logo.
 import { content } from "../content";
 import GroupedCards, { type CardGroup } from "../grouped-cards";
-import aws from "@/assets/certificates/AWSCPE.png";
-import threat from "@/assets/certificates/CyberThreatMan.png";
-import edtp from "@/assets/certificates/EDTP.png";
-import cyber from "@/assets/certificates/IntToCybersec.png";
-import intGit from "@/assets/certificates/IntGIT.png";
-import introGit from "@/assets/certificates/IntroGIT.png";
-import cloud from "@/assets/certificates/UndCC.png";
-import web from "@/assets/certificates/WebFun.png";
-import ai from "@/assets/certificates/AIFun.png";
-import essay from "@/assets/certificates/Champ.png";
-import exchange from "@/assets/certificates/StudEXProg.png";
-import analysis from "@/assets/certificates/BestAnalysis.png";
-import innov from "@/assets/certificates/BestInnov.png";
-import pres from "@/assets/certificates/BestPres.png";
-import iot from "@/assets/certificates/IoTDT.png";
-import ncii from "@/assets/certificates/NCII.png";
+import aws from "@/assets/certificates/AWSCPE.webp";
+import threat from "@/assets/certificates/CyberThreatMan.webp";
+import edtp from "@/assets/certificates/EDTP.webp";
+import cyber from "@/assets/certificates/IntToCybersec.webp";
+import intGit from "@/assets/certificates/IntGIT.webp";
+import introGit from "@/assets/certificates/IntroGIT.webp";
+import cloud from "@/assets/certificates/UndCC.webp";
+import web from "@/assets/certificates/WebFun.webp";
+import ai from "@/assets/certificates/AIFun.webp";
+import essay from "@/assets/certificates/Champ.webp";
+import exchange from "@/assets/certificates/StudEXProg.webp";
+import analysis from "@/assets/certificates/BestAnalysis.webp";
+import innov from "@/assets/certificates/BestInnov.webp";
+import pres from "@/assets/certificates/BestPres.webp";
+import iot from "@/assets/certificates/IoTDT.webp";
+import ncii from "@/assets/certificates/NCII.webp";
 
 // Cards whose enlarged view is a grid of several pictures instead of just their own.
 const GALLERY: Record<string, string[]> = {
