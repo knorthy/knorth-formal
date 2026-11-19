@@ -7,6 +7,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { useReducedMotion } from "@/components/useReducedMotionSafe";
+import LatticeLoader from "@/components/LatticeLoader";
 import KnoPaw, { type KnoMood } from "./KnoPaw";
 import BranchedMenu, { type BranchedMenuItem } from "@/components/BranchedMenu";
 import { content } from "@/app/content";
@@ -311,8 +312,7 @@ export default function ChatWidget() {
             >
               {bubble && <p className="ask-bubble">{bubble}</p>}
 
-              <div className={`ask-head ${title.loading ? "is-shimmer" : ""}`} aria-live="polite">
-                {title.loading && <span className="ask-loader" aria-hidden />}
+              <div className="ask-head" aria-live="polite">
                 <AnimatePresence mode="wait" initial={false}>
                   <motion.h2
                     key={title.key}
@@ -322,7 +322,11 @@ export default function ChatWidget() {
                     exit={reduce ? undefined : { opacity: 0, y: 6, transition: { duration: 0.2 } }}
                     transition={{ duration: 0.3, ease: EASE }}
                   >
-                    {title.text}
+                    {title.loading ? (
+                      <LatticeLoader label="thinking" pattern="spiral" cellSize={8} gap={3} fontSize={24} showTimer={false} color="var(--color-muted)" />
+                    ) : (
+                      title.text
+                    )}
                   </motion.h2>
                 </AnimatePresence>
               </div>

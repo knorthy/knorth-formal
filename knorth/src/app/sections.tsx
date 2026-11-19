@@ -5,9 +5,8 @@
 import dynamic from "next/dynamic";
 import { useEffect, useRef, useState, useSyncExternalStore, type ReactNode } from "react";
 import { createPortal } from "react-dom";
-import { motion, useMotionValue, useSpring } from "motion/react";
-import { useReducedMotion } from "@/components/useReducedMotionSafe";
 import DriftWall from "@/components/DriftWall";
+import PointerLabel, { usePointerLabel } from "@/components/PointerLabel";
 import CardSwap, { type CardSwapHandle } from "@/components/CardSwap";
 import SlingButton from "@/components/SlingButton";
 import LogoLoop from "@/components/LogoLoop";
@@ -63,44 +62,18 @@ export function ThemeToggle({ className }: { className?: string }) {
 // Photos drifting past under Experience: hackathons, competitions and the exchange program.
 const galleryItems = content.gallery;
 
-// Hovering a photo shows what it is in a small pill that trails the pointer and tilts with its
-// movement (the "Drag to spin" pill from the knorth portfolio). The text is written straight into
-// the DOM so the wall doesn't re-render on every mouse move. Mouse only: touch has no hover.
+// Hovering a photo shows what it is in a pill that trails the pointer (see PointerLabel). On the tilted
+// 3D plane the pointer often lands between tiles; the pill keeps the last photo's label until another is hit.
 export function GalleryWall() {
   const c = PALETTE[useTheme()];
-  const reduce = useReducedMotion();
-  const box = useRef<HTMLDivElement>(null);
-  const text = useRef<HTMLSpanElement>(null);
-  const lastY = useRef(0);
-  const x = useMotionValue(0);
-  const y = useMotionValue(0);
-  const opacity = useSpring(0, { stiffness: 300, damping: 30 });
-  const rotate = useSpring(0, { stiffness: 350, damping: 30, mass: 1 });
-
-  const onMove = (e: React.PointerEvent) => {
-    if (e.pointerType !== "mouse" || !box.current || !text.current) return;
-    const r = box.current.getBoundingClientRect();
-    const lx = e.clientX - r.left;
-    const ly = e.clientY - r.top;
-    x.set(lx + 14);
-    y.set(ly + 10);
-    rotate.set(reduce ? 0 : -(ly - lastY.current) * 0.6);
-    lastY.current = ly;
-    // On the tilted 3D plane the pointer often lands on the plane between tiles; like the wall's own
-    // lifted tile, keep the last photo's label until another photo is hit or the pointer leaves.
-    const tile = (e.target as HTMLElement).closest<HTMLElement>("[data-tile-id]");
-    const label = tile?.getAttribute("aria-label") || tile?.querySelector("img")?.alt || "";
-    if (!label) return;
-    text.current.textContent = label;
-    opacity.set(1);
-  };
-  const onLeave = () => {
-    opacity.set(0);
-    rotate.set(0);
-  };
-
   return (
-    <div ref={box} className="relative h-[460px] md:h-[640px]" onPointerMove={onMove} onPointerLeave={onLeave}>
+    <PointerLabel
+      className="h-[460px] md:h-[640px]"
+      labelOf={(t) => {
+        const tile = t.closest<HTMLElement>("[data-tile-id]");
+        return tile?.getAttribute("aria-label") || tile?.querySelector("img")?.alt || "";
+      }}
+    >
       <DriftWall
         items={galleryItems}
         columns={7}
@@ -118,14 +91,7 @@ export function GalleryWall() {
         grayscale
         overlayColor={c.paper}
       />
-      <motion.div
-        aria-hidden
-        style={{ x, y, opacity, rotate }}
-        className="pointer-events-none absolute top-0 left-0 z-10 rounded-full border border-rule bg-paper/90 px-3 py-1.5 backdrop-blur-sm"
-      >
-        <span ref={text} className="font-mono text-xs whitespace-nowrap text-ink" />
-      </motion.div>
-    </div>
+    </PointerLabel>
   );
 }
 
@@ -144,6 +110,21 @@ const LANYARD_EXTRA = 320;
 // layer click-through everywhere except on the card itself.
 export function HeroLanyard() {
   const slot = useRef<HTMLDivElement>(null);
+  // The lanyard's canvas is click-through, so it can't report hover. It sets the page cursor to
+  // grab/grabbing while the pointer is over the card; read that (after it has run) to show the pill.
+  const { move, hide, pill } = usePointerLabel(true);
+  useEffect(() => {
+    const onMove = (e: PointerEvent) => {
+      if (e.pointerType !== "mouse") return;
+      requestAnimationFrame(() => {
+        const over = document.documentElement.style.cursor.startsWith("grab");
+        if (over) move(e.clientX, e.clientY, "Hello World");
+        else hide();
+      });
+    };
+    window.addEventListener("pointermove", onMove);
+    return () => window.removeEventListener("pointermove", onMove);
+  });
   const [box, setBox] = useState<{
     top: number;
     width: number;
@@ -214,6 +195,7 @@ export function HeroLanyard() {
           </div>,
           document.body,
         )}
+      {box && createPortal(pill, document.body)}
     </div>
   );
 }
@@ -268,7 +250,10 @@ export function ProjectDeck() {
           </span>
         </div>
       </div>
-      <div className="h-[360px] min-w-0 [&_img]:grayscale sm:h-[500px] md:-mr-24">
+      <PointerLabel
+        className="h-[360px] min-w-0 [&_img]:grayscale sm:h-[500px] md:-mr-24"
+        labelOf={(t) => content.projects[Number(t.closest("[data-swap-index]")?.getAttribute("data-swap-index"))]?.title ?? ""}
+      >
         <CardSwap
           ref={deck}
           items={deckItems}
@@ -282,7 +267,7 @@ export function ProjectDeck() {
           theme={theme}
           onChange={setIndex}
         />
-      </div>
+      </PointerLabel>
     </div>
   );
 }
@@ -303,7 +288,11 @@ const skillLogos = content.skills.flatMap((group) =>
   group.items.split(", ").map((name) => {
     const Icon = TECH_ICONS[name];
     return {
-      node: Icon ? <Icon aria-hidden size={30} /> : <span className="font-medium">{name}</span>,
+      node: (
+        <span data-tip={name} className="inline-flex">
+          {Icon ? <Icon aria-hidden size={30} /> : <span className="font-medium">{name}</span>}
+        </span>
+      ),
       title: name,
     };
   }),
@@ -311,14 +300,16 @@ const skillLogos = content.skills.flatMap((group) =>
 
 export function SkillsLoop() {
   return (
-    <LogoLoop
-      logos={skillLogos}
-      speed={45}
-      logoHeight={30}
-      gap={56}
-      hoverSpeed={12}
-      ariaLabel="Skills"
-    />
+    <PointerLabel labelOf={(t) => t.closest<HTMLElement>("[data-tip]")?.dataset.tip ?? ""}>
+      <LogoLoop
+        logos={skillLogos}
+        speed={45}
+        logoHeight={30}
+        gap={56}
+        hoverSpeed={12}
+        ariaLabel="Skills"
+      />
+    </PointerLabel>
   );
 }
 
@@ -511,8 +502,7 @@ const ICONS = {
 } as const;
 
 // Contact and footer in one dark block: brand and links, about and socials, then the form.
-// The form opens the visitor's mail app with the message filled in.
-// shortcut: mailto only, no server; add an email API route when a real address exists.
+// The form posts to /api/contact, which emails the message (see api/contact/route.ts).
 const field =
   "w-full rounded-[10px] border border-white/10 bg-white/5 px-[18px] py-3.5 text-sm text-white outline-none transition-colors placeholder:text-white/30 focus:border-white/50";
 const faint = "text-white/45";
@@ -524,12 +514,18 @@ const useYear = () => useSyncExternalStore(noop, () => new Date().getFullYear(),
 export function ContactFooter() {
   const year = useYear();
   const firstName = content.name.split(" ")[0];
-  const send = (e: React.FormEvent<HTMLFormElement>) => {
+  const [status, setStatus] = useState<"idle" | "sending" | "sent" | "error">("idle");
+  const send = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    const f = new FormData(e.currentTarget);
-    const subject = `Message from ${f.get("name")}`;
-    const body = `${f.get("message")}\n\n${f.get("name")} (${f.get("email")})`;
-    window.location.href = `mailto:${content.email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+    const form = e.currentTarget;
+    setStatus("sending");
+    const res = await fetch("/api/contact", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify(Object.fromEntries(new FormData(form))),
+    }).catch(() => null);
+    if (res?.ok) form.reset();
+    setStatus(res?.ok ? "sent" : "error");
   };
   const nav = [
     ["Home", "#main"],
@@ -599,10 +595,15 @@ export function ContactFooter() {
             <textarea name="message" required rows={5} placeholder="Message" aria-label="Message" className={`${field} resize-none`} />
             <button
               type="submit"
+              disabled={status === "sending"}
               className="w-full cursor-pointer rounded-[10px] bg-white p-3.5 text-[15px] font-semibold text-[#0a0c0a] transition-[background,transform] hover:-translate-y-0.5 hover:bg-white/80 active:translate-y-0"
             >
-              Send message
+              {status === "sending" ? "Sending..." : "Send message"}
             </button>
+            <p role="status" className={`min-h-5 text-sm ${status === "error" ? "text-red-300" : "text-white/60"}`}>
+              {status === "sent" && "Thanks, your message was sent."}
+              {status === "error" && `Couldn't send that. Please try again, or email ${content.email}.`}
+            </p>
           </form>
         </div>
       </div>

@@ -26,7 +26,7 @@
 html {
   background: var(--color-paper);
   color: var(--color-ink);
-  scrollbar-color: color-mix(in oklab, var(--color-ink) 28%, var(--color-paper)) var(--color-paper);
+  scrollbar-width: none; /* scrolling still works, the bar is just hidden everywhere */
   scroll-padding-top: 2rem;
 }
 
@@ -141,3 +141,6 @@ summary::-webkit-details-marker {
 @keyframes zoom-fade { from { opacity: 0; } }
 @keyframes zoom-out { to { opacity: 0; transform: scale(0.92); } }
 @keyframes zoom-fade-out { to { opacity: 0; } }
+
+*::-webkit-scrollbar { display: none; }
+* { scrollbar-width: none; }
