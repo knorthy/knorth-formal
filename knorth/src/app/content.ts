@@ -57,8 +57,8 @@ export const content = {
       image: "/projects/mobile-oneindang.webp",
       year: "",
       description:
-        "The official mobile app of the Municipality of Indang: a citizen-centric platform for public services, emergency contacts, news and community issue reporting. Role: full-stack developer and UI/UX designer.",
-      tools: "Mobile app, LGU platform",
+        "A prototype all-in-one guide to Indang, Cavite: a fare calculator for local transport, emergency hotlines, a citizen's guide to government requirements, a local business directory and student housing support. Role: full-stack developer and UI/UX designer.",
+      tools: "Mobile app, digital governance",
       href: "https://github.com/knorthy/OneIndang",
     },
     {
@@ -68,8 +68,8 @@ export const content = {
       image: "/projects/game-tbltbu.webp",
       year: "",
       description:
-        "A 3D game. Led the design and development end to end: gameplay mechanics, level design and project delivery. Role: lead project personnel, 3D game designer and developer.",
-      tools: "3D game design, level design",
+        "A two-player asymmetric co-op survival thriller on a volcanic island. One player explores blind while the other holds the map and the facts, so the only way out is talking. Role: lead project personnel, 3D game designer and developer.",
+      tools: "Godot 4, GDScript, 3D low-poly",
       href: "https://github.com/ArhonJay/TBLTBU",
     },
     {
@@ -79,8 +79,8 @@ export const content = {
       image: "",
       year: "",
       description:
-        "A reinforcement learning model that dynamically optimizes power factor correction, reducing energy waste in a simulated electrical system, alongside an ESP-based corrector with real-time monitoring and cloud-based logging.",
-      tools: "Reinforcement learning, ESP32, cloud logging",
+        "An undergraduate thesis on a reinforcement learning agent that adapts power factor correction in a simulated industrial environment, cutting energy waste without fixed rules.",
+      tools: "Reinforcement learning, Python, simulation",
       href: "",
     },
     {
@@ -90,8 +90,8 @@ export const content = {
       image: "/projects/mobile-metacampus.webp",
       year: "",
       description:
-        "An augmented reality campus engagement platform. Led UI/UX design in Figma and coordinated team milestones for on-time delivery. Role: project manager, full-stack developer and UI/UX designer.",
-      tools: "Augmented reality, Figma",
+        "A PokemonGO-style AR platform where student organizations run events, scavenger hunts and campus-wide quests, and students earn points and badges. Role: project manager, full-stack developer and UI/UX designer.",
+      tools: "Augmented reality, Flutter, Firebase, Figma",
       href: "https://github.com/knorthy/MetaCampus",
     },
   ],
@@ -123,18 +123,19 @@ export const content = {
   ],
   // Smaller builds: on the /projects page beside the deck's five, not on the homepage.
   more: [
-    { title: "Claro", image: "/projects/websites-claro-hero.webp", category: "Web", org: "Landing page and feedback form for a personal expense tracker", when: "", href: "https://github.com/knorthy/WhiteString-Expense-Tracker" },
-    { title: "Dash Car Rentals", image: "/projects/uiux-dash-car-rentals.webp", category: "Web", org: "Responsive car rental website with booking flows and real-time availability", when: "" },
-    { title: "IoT Earthquake Detector", image: "/projects/iot-earthquake-detector.webp", category: "Embedded & IoT", org: "Seismic detection on ESP controllers with automated alerts and remote cloud monitoring", when: "" },
+    { title: "Claro", image: "/projects/websites-claro-hero.webp", category: "Web", org: "Personal finance website built during my WhiteString internship", tools: "Laravel, React", description: "Built during my internship at WhiteString, where we were tasked to create a finance app. Laravel runs the backend and I built the React frontend. Add wallet balances and receipts, and it computes how much money you lose through purchases and what you save.", when: "", href: "https://github.com/knorthy/WhiteString-Expense-Tracker" },
+    { title: "Dash Car Rentals", image: "/projects/uiux-dash-car-rentals.webp", category: "Web", org: "Rental website for cars, yachts, motorcycles and other vehicles", description: "A website for renting a range of vehicles, including cars, yachts and motorcycles, with booking flows and real-time availability.", href: "https://github.com/knorthy/Dash-rentals", when: "" },
+    { title: "IoT Earthquake Detector", image: "/projects/iot-earthquake-detector.webp", category: "Embedded & IoT", org: "Seismic detection on an ESP32 with SMS alerts and remote monitoring", tools: "ESP32, ADXL345, SIM800L, Blynk", description: "A real-time earthquake monitor. An ADXL345 accelerometer feeds an ESP32 that shows live readings on a touchscreen, sounds a 220V alarm through a relay, sends SMS alerts over GSM and reports to the Blynk cloud.", href: "https://github.com/knorthy/earthquake_monitor", when: "" },
     { title: "Misting Sanitation System", image: "/projects/iot-misting-sanitation.webp", category: "Embedded & IoT", org: "Arduino misting pipes with sensor-triggered activation and QR-based attendance", when: "" },
+    { title: "ESP32 APFC", image: "/projects/iot-esp32-apfc.webp", category: "Embedded & IoT", org: "Automatic power factor corrector on an ESP32 for homes", tools: "ESP32, IoT, power electronics", description: "An IoT-based embedded system that measures and corrects power factor automatically in residential properties, built as a diploma research project and evaluated by subject matter experts and forty users.", href: "https://github.com/knorthy/APFC-system", when: "" },
     { title: "POS systems", category: "Web", org: "Point-of-sale systems with inventory and real-time sales reporting for small businesses", when: "" },
-    { title: "tilaOK", image: "/projects/ml-tilaok.webp", category: "Machine learning", org: "Machine learning project with a companion website", when: "" },
-    { title: "CIRCU-360", image: "/projects/ml-circu-360.webp", category: "Machine learning", org: "Machine learning project", when: "" },
-    { title: "SmartHerd", category: "Mobile apps", org: "Mobile app", when: "" },
+    { title: "tilaOK", image: "/projects/ml-tilaok.webp", category: "Machine learning", org: "Audio AI that flags sick chickens from their sounds", tools: "Teachable Machine, audio classification", description: "An early-warning system for poultry farms. A single microphone listens to the flock and an audio model separates healthy sounds from coughing, snoring and rales, so disease is caught before it spreads.", href: "https://github.com/knorthy/tilaOK", when: "" },
+    { title: "CIRCU-360", image: "/projects/ml-circu-360.webp", category: "Machine learning", org: "A smart plastic recovery micro-plant for the circular economy", tools: "AI sorting, pyrolysis, traceability", description: "A case study for the International Student Essay Challenge: a containerized micro-plant that sorts plastic with AI, pyrolyses only HDPE, LDPE and PP, and tracks every output on a dashboard. Co-authored with UNWAHAS students.", href: "https://github.com/knorthy/CIRCU360-demo", when: "" },
+    { title: "SmartHerd", image: "/projects/mobile-smartherd.webp", category: "Mobile apps", org: "Goat weight estimation from two phone photos", tools: "YOLOv8, CNN keypoints, IoT", description: "A smartphone app that estimates a goat's live weight from a side and a top photo, with no scale or restraint. A backend finds body keypoints with YOLOv8 pose models and turns the measurements into a weight.", href: "https://github.com/knorthy/SmartHerd", when: "" },
     { title: "Juno", category: "Mobile apps", org: "Mobile assistant app", when: "" },
-    { title: "HomeVision", category: "Mobile apps", org: "Mobile app with machine learning", when: "" },
-    { title: "QCSP Competition", category: "Web", org: "Landing page for the QCSP competition", when: "" },
-    { title: "Personal websites", category: "Web", org: "Personal websites I designed and built", when: "" },
+    { title: "HomeVision", image: "/projects/mobile-homevision.webp", category: "Mobile apps", org: "AI room redesign that links to financeable products", tools: "Generative AI, mobile app", description: "Champion of the Home Credit AI in UX hackathon. Snap a photo of your room, let generative AI redesign it, then see the furniture tagged with real products and monthly payments, with budget-friendly alternatives suggested.", href: "https://github.com/knorthy/HomeVision", when: "" },
+    { title: "QCSP Competition", image: "/projects/websites-qcsp.webp", category: "Web", org: "Competition landing page for the official QCSP 2026 website", tools: "Next.js, React, Tailwind CSS", description: "Volunteer developer for Quantum Computing Society Philippines. Assigned to design and develop the competition landing page for the official QCSP 2026 website.", href: "https://github.com/knorthy/QCSP-Compe", when: "" },
+    { title: "Personal websites", image: "/projects/websites-personal.webp", category: "Web", org: "Personal websites I designed and built", when: "" },
   ],
   // "What I build" on the homepage: each area lists the projects (by `category`) that show it.
   services: [

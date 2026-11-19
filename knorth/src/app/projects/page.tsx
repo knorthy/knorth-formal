@@ -12,8 +12,8 @@ export const metadata: Metadata = {
 // order the categories first appear.
 function groups(): CardGroup[] {
   const all = [
-    ...content.projects.map((p) => ({ title: p.title, category: p.category, text: p.kind, image: p.image, href: p.href })),
-    ...content.more.map((m) => ({ title: m.title, category: m.category, text: m.org, image: "image" in m ? m.image : "", href: "href" in m ? m.href : "" })),
+    ...content.projects.map((p) => ({ title: p.title, category: p.category, text: p.kind, image: p.image, href: p.href, tools: p.tools, description: p.description })),
+    ...content.more.map((m) => ({ title: m.title, category: m.category, text: m.org, image: "image" in m ? m.image : "", href: "href" in m ? m.href : "", tools: "tools" in m ? m.tools : undefined, description: ("description" in m ? m.description : undefined) ?? m.org })),
   ];
   const map = new Map<string, typeof all>();
   for (const p of all) map.set(p.category, [...(map.get(p.category) ?? []), p]);
@@ -25,6 +25,7 @@ function groups(): CardGroup[] {
       title: p.title,
       meta: p.text,
       image: p.image || undefined,
+      detail: { tools: p.tools, description: p.description },
       monogram: p.title
         .split(/\s+/)
         .filter((w) => /^[A-Z]/.test(w))

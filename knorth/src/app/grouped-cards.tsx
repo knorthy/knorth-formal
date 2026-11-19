@@ -19,6 +19,8 @@ export type CardItem = {
   image?: string;
   /** when set, enlarging the image shows all of these in a grid instead */
   gallery?: string[];
+  /** when set, enlarging the image shows this text beside it (projects page) */
+  detail?: { tools?: string; description: string };
   /** href opens in a new tab; without one, `ask` sends that question to Kniah */
   link?: { label: string; href?: string; ask?: string };
 };
@@ -63,7 +65,7 @@ function CardLink({ item }: { item: CardItem }) {
 }
 
 // Click the picture to view it large in a native <dialog> (Esc, focus trap and backdrop come free).
-function Zoom({ src, gallery = [src], title }: { src: string; gallery?: string[]; title: string }) {
+function Zoom({ src, gallery = [src], title, detail, link }: { src: string; gallery?: string[]; title: string; detail?: CardItem["detail"]; link?: CardItem["link"] }) {
   const ref = useRef<HTMLDialogElement>(null);
   // Play the close animation (data-closing, see globals.css) before really closing.
   const close = () => {
@@ -95,14 +97,32 @@ function Zoom({ src, gallery = [src], title }: { src: string; gallery?: string[]
           close();
         }}
         aria-label={title}
-        className="m-auto max-h-[90vh] max-w-[92vw] cursor-zoom-out overflow-hidden bg-transparent p-0 backdrop:bg-black/60 backdrop:backdrop-blur-md"
+        className={`m-auto max-h-[90vh] max-w-[92vw] cursor-zoom-out bg-transparent p-0 backdrop:bg-black/60 backdrop:backdrop-blur-md ${detail ? "w-[1000px] overflow-y-auto" : "overflow-hidden"}`}
       >
+        {detail ? (
+          <div className="grid items-center gap-8 md:grid-cols-[2fr_3fr]">
+            <div className="order-2 text-white md:order-1">
+              <h3 className="text-3xl tracking-[-0.02em]">{title}</h3>
+              {detail.tools && <p className="mt-2 text-xs text-white/70">{detail.tools.split(", ").join(" · ")}</p>}
+              <p className="mt-5 text-sm leading-relaxed text-white/85">{detail.description}</p>
+              {link?.href && (
+                <a href={link.href} target="_blank" rel="noopener noreferrer" className="mt-6 inline-flex min-h-11 items-center text-xs text-white/70 transition-colors hover:text-white">
+                  <span className="link">{link.label}</span>
+                  <span aria-hidden className="ml-1">↗</span>
+                </a>
+              )}
+            </div>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={src} alt={title} decoding="async" className="order-1 w-full rounded-xl object-contain md:order-2" />
+          </div>
+        ) : (
         <div className={`grid gap-4 ${gallery.length > 1 ? "grid-cols-2 place-items-center" : ""}`}>
           {gallery.map((g, i) => (
             // eslint-disable-next-line @next/next/no-img-element
             <img key={g} src={g} loading="lazy" decoding="async" alt={gallery.length > 1 ? `${title}, certificate ${i + 1}` : title} className={`rounded-xl object-contain ${gallery.length > 1 ? "max-h-[42vh] max-w-[46vw]" : "max-h-[88vh] max-w-[92vw]"}`} />
           ))}
         </div>
+        )}
       </dialog>
     </>
   );
@@ -113,7 +133,7 @@ function Card({ item }: { item: CardItem }) {
     <li className="flex flex-col overflow-hidden rounded-xl border border-rule">
       <div className="relative grid h-[220px] shrink-0 place-items-center overflow-hidden border-b border-rule bg-[color-mix(in_oklab,var(--color-ink)_3%,var(--color-paper))] p-4">
         {item.image ? (
-          <Zoom src={item.image} gallery={item.gallery} title={item.title} />
+          <Zoom src={item.image} gallery={item.gallery} title={item.title} detail={item.detail} link={item.link} />
         ) : (
           <Mark org={item.logoOrg} monogram={item.monogram} className="h-24 w-40" text="text-[clamp(2.5rem,5vw,3.5rem)]" />
         )}
