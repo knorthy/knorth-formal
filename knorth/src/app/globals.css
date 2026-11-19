@@ -129,3 +129,15 @@ summary::-webkit-details-marker {
   .skill-marquee-track { animation: none; }
   .skill-bar { transition: none; }
 }
+
+/* Certificate zoom dialog: fade the backdrop and scale the picture in. */
+@media (prefers-reduced-motion: no-preference) {
+  dialog[open] { animation: zoom-in 0.25s cubic-bezier(0.2, 0.8, 0.2, 1); }
+  dialog[open]::backdrop { animation: zoom-fade 0.25s ease-out; }
+  dialog[data-closing] { animation: zoom-out 0.2s ease-in forwards; }
+  dialog[data-closing]::backdrop { animation: zoom-fade-out 0.2s ease-in forwards; }
+}
+@keyframes zoom-in { from { opacity: 0; transform: scale(0.92); } }
+@keyframes zoom-fade { from { opacity: 0; } }
+@keyframes zoom-out { to { opacity: 0; transform: scale(0.92); } }
+@keyframes zoom-fade-out { to { opacity: 0; } }

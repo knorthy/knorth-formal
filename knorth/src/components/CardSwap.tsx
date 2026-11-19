@@ -343,6 +343,15 @@ const ItemCard = ({ item }: { item: CardSwapItem }) => (
           />
         </div>
       )}
+      {!item.image && item.title && (
+        // No picture yet: the title, large, fills the panel
+        <div
+          className="grid min-h-0 flex-1 place-items-center p-8 text-center font-pixel text-[clamp(1.5rem,4vw,2.75rem)] leading-[1.05] tracking-[-0.02em]"
+          style={{ borderRadius: 'max(0px, calc(var(--swap-radius) - 6px))', background: 'var(--swap-badge)' }}
+        >
+          {item.title}
+        </div>
+      )}
     </div>
   </Card>
 );

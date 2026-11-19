@@ -3,7 +3,7 @@
 // The interactive pieces of the page. Each wraps one reusable component from
 // src/components and feeds it the portfolio's content in the page's ink and paper.
 import dynamic from "next/dynamic";
-import { useEffect, useRef, useState, useSyncExternalStore } from "react";
+import { useEffect, useRef, useState, useSyncExternalStore, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 import { motion, useMotionValue, useSpring } from "motion/react";
 import { useReducedMotion } from "@/components/useReducedMotionSafe";
@@ -22,12 +22,9 @@ import {
   TbBrandAdobePremiere, TbBrandAws, TbBrandVscode, TbBrush, TbSchool, TbScissors, TbTrophy,
 } from "react-icons/tb";
 import { content } from "./content";
-import cisco from "@/assets/logo/CISCO.png";
-import cvsu from "@/assets/logo/CVSU.png";
-import datacamp from "@/assets/logo/DATACAMP.png";
-import ibm from "@/assets/logo/IBM.png";
-import homeCredit from "@/assets/logo/HOMECREDIT.png";
-import tesda from "@/assets/logo/TESDA.png";
+import DecryptedText from "@/components/DecryptedText";
+import { logoFor, maskStyle } from "./logos";
+import Link from "next/link";
 
 // Canvas components need real colour values, not CSS variables. Keep in step with globals.css.
 const PALETTE = {
@@ -221,7 +218,7 @@ export function HeroLanyard() {
   );
 }
 
-const deckItems = content.projects.map((p) => ({ image: p.image, title: p.title, alt: p.title }));
+const deckItems = content.projects.map((p) => ({ image: p.image || undefined, title: p.title, alt: p.title }));
 
 // Projects as a stack of tilted cards (the Claro landing layout): the front card's project is written
 // out on the left; the deck swaps on its own, on drag, or with the button.
@@ -244,26 +241,13 @@ export function ProjectDeck() {
         <p className="mt-6 max-w-[48ch] leading-[1.6] text-pretty text-muted">{p.description}</p>
         <p className="mt-4 text-sm">{p.tools}</p>
         <div className="mt-8 flex flex-wrap items-center gap-x-10 gap-y-6">
-          {/* "Learn more" opens the project's repo when it has one, otherwise asks Kniah about it
-              (ChatWidget listens for "kniah:ask"); the small sling in place of its arrow swaps to the
-              next project when tapped or pulled and let go. */}
+          {/* "See more" opens /projects; the small sling in place of its arrow swaps to the next
+              project when tapped or pulled and let go. */}
           <span className="inline-flex items-center gap-2.5 text-sm">
-            {p.href ? (
-              <a href={p.href} target="_blank" rel="noopener noreferrer" className="inline-flex min-h-11 items-center">
-                <span className="link">Learn more</span>
-                <span className="sr-only"> about {p.title} on GitHub (opens in a new tab)</span>
-              </a>
-            ) : (
-              <button
-                type="button"
-                onClick={() =>
-                  window.dispatchEvent(new CustomEvent("kniah:ask", { detail: `tell me more about ${p.title}` }))
-                }
-                className="inline-flex min-h-11 cursor-pointer items-center"
-              >
-                <span className="link">Learn more</span>
-              </button>
-            )}
+            <Link href="/projects" className="inline-flex min-h-11 items-center">
+              <span className="link">See more</span>
+              <span className="sr-only"> projects</span>
+            </Link>
             <SlingButton
               onSend={() => deck.current?.next()}
               ariaLabel="Next project"
@@ -339,18 +323,6 @@ export function SkillsLoop() {
 }
 
 // Education and credentials as two ruled columns, each entry led by its logo drawn in ink.
-// Issuer and school logos from src/assets/logo, matched on a name inside the entry's org. An entry
-// with no matching logo falls back to an icon.
-const LOGOS: Record<string, string> = {
-  Cisco: cisco.src,
-  DataCamp: datacamp.src,
-  IBM: ibm.src,
-  "Home Credit": homeCredit.src,
-  TESDA: tesda.src,
-  "Cavite State University": cvsu.src,
-};
-// Matches on the name appearing in the org, so "TESDA National Certificate" still finds TESDA.
-const logoFor = (org: string) => Object.entries(LOGOS).find(([name]) => org.includes(name))?.[1];
 
 // Laid out like immanbufi.dev: 12px column heading over a hairline, then entries led by a 120px logo,
 // an 11px issuer, the title, a subtitle, a 12px date and an optional link. Two credentials show up
@@ -370,10 +342,6 @@ function Entry(props: {
   ask?: string;
   /** put the date on the label line ("WHITESTRINGS · Jun 2026 — Present") instead of its own line */
   dateInLabel?: boolean;
-  /** several positions at one company, newest first, drawn as a small timeline */
-  roles?: { title: string; when: string; text?: string; skills?: string }[];
-  /** show the roles timeline (toggled by the column's "Learn more") */
-  rolesOpen?: boolean;
 }) {
   const inline = props.dateInLabel && props.when;
   const linkClass =
@@ -386,16 +354,7 @@ function Entry(props: {
         <span
           aria-hidden
           className="block h-[72px] w-[120px] shrink-0 self-start bg-ink"
-          style={{
-            maskImage: `url(${props.logoSrc})`,
-            WebkitMaskImage: `url(${props.logoSrc})`,
-            maskSize: "contain",
-            WebkitMaskSize: "contain",
-            maskRepeat: "no-repeat",
-            WebkitMaskRepeat: "no-repeat",
-            maskPosition: "left center",
-            WebkitMaskPosition: "left center",
-          }}
+          style={maskStyle(props.logoSrc, "left center")}
         />
       ) : (
         props.Logo && (
@@ -415,19 +374,6 @@ function Entry(props: {
           {props.title}
         </span>
         {props.sub && <span className="mt-1.5 block text-sm text-muted">{props.sub}</span>}
-        {props.roles && props.rolesOpen && (
-          <ol className="mt-5 flex flex-col gap-5 border-l border-rule pl-5">
-            {props.roles.map((r) => (
-              <li key={r.title} className="relative">
-                <span aria-hidden className="absolute top-[0.55em] -left-[23.5px] size-[7px] rounded-full bg-muted" />
-                <span className="block font-pixel text-[17px] leading-tight">{r.title}</span>
-                <span className="mt-1 block font-mono text-xs text-muted tabular-nums">{r.when}</span>
-                {r.text && <span className="mt-1.5 block text-sm text-muted">{r.text}</span>}
-                {r.skills && <span className="mt-1.5 block font-mono text-xs text-ink">{r.skills}</span>}
-              </li>
-            ))}
-          </ol>
-        )}
         {props.when && !inline && (
           <span className="mt-1.5 block font-mono text-sm text-muted tabular-nums">{props.when}</span>
         )}
@@ -460,106 +406,60 @@ const head =
   "mb-7 border-b border-rule pb-3.5 font-sans text-xs font-medium tracking-[0.08em] text-muted uppercase";
 
 // Same column style as the credentials, text only: work on the left, leadership and volunteering right.
-// "View all …" under a shortened list; opens the rest in place, "Show fewer" folds it back.
-function ShowAll(props: {
-  open: boolean;
-  onToggle: () => void;
-  controls: string;
-  label?: string;
-  closedLabel?: string;
-  openLabel?: string;
-}) {
-  return (
-    <button
-      type="button"
-      aria-expanded={props.open}
-      aria-controls={props.controls}
-      onClick={props.onToggle}
-      className="mt-8 inline-flex min-h-11 cursor-pointer items-center text-sm text-muted transition-colors hover:text-ink"
-    >
-      {props.open ? (props.openLabel ?? "Show fewer") : (props.closedLabel ?? `View all ${props.label}`)}
-      <span aria-hidden className="ml-1">
-        {props.open ? "\u2191" : "\u2192"}
-      </span>
-    </button>
-  );
-}
-
 // Leadership shows as many entries as work experience up front, so the two columns start even.
 const LEADERSHIP_UP_FRONT = content.experience.length;
 
+// Opens a section of an inner page, styled like the other "View all" links.
+function PageLink({ href, children }: { href: string; children: string }) {
+  return (
+    <Link
+      href={href}
+      className="mt-8 inline-flex min-h-11 items-center text-sm text-muted transition-colors hover:text-ink"
+    >
+      {children}
+      <span aria-hidden className="ml-1">
+        →
+      </span>
+    </Link>
+  );
+}
+
+// The homepage keeps a short version; the full detail (whiteStrings' roles, every organisation) is
+// on /experience.
 export function ExperienceGrid() {
-  const [all, setAll] = useState(false);
-  // "Learn more" under Work experience unfolds the role-by-role detail (e.g. whiteStrings' three roles).
-  const [more, setMore] = useState(false);
   // Work puts "company · date" on one line; leadership keeps the date on its own line.
-  const column = (
-    items: {
-      title: string;
-      org: string;
-      sub?: string;
-      when: string;
-      roles?: { title: string; when: string; text?: string; skills?: string }[];
-    }[],
-    id: string,
-    work = false,
-  ) => (
+  const column = (items: { title: string; org: string; sub?: string; when: string }[], id: string, work = false) => (
     <ul id={id} className="flex flex-col gap-10">
       {items.map((e) => (
-        <Entry
-          key={`${e.title}-${e.org}`}
-          label={e.org}
-          title={e.title}
-          sub={e.sub}
-          when={e.when}
-          roles={e.roles}
-          rolesOpen={work && more}
-          dateInLabel={work}
-        />
+        <Entry key={`${e.title}-${e.org}`} label={e.org} title={e.title} sub={e.sub} when={e.when} dateInLabel={work} />
       ))}
     </ul>
   );
-  const leadership = all ? content.leadership : content.leadership.slice(0, LEADERSHIP_UP_FRONT);
   return (
     <div className="grid gap-x-16 gap-y-12 md:grid-cols-2">
-      {/* Each column is a flex column and its toggle sits in an mt-auto wrapper, so "Learn more" and
+      {/* Each column is a flex column and its link sits in an mt-auto wrapper, so "Learn more" and
           "View all leadership & volunteering" share a baseline however long either list is. */}
       <div className="flex flex-col">
         <h3 className={head}>Work experience</h3>
         {column(content.experience, "work-list", true)}
-        {content.experience.some((e) => "roles" in e) && (
-          <div className="mt-auto">
-            <ShowAll
-              open={more}
-              onToggle={() => setMore((v) => !v)}
-              controls="work-list"
-              closedLabel="Learn more"
-              openLabel="Show less"
-            />
-          </div>
-        )}
+        <div className="mt-auto">
+          <PageLink href="/experience#work">Learn more</PageLink>
+        </div>
       </div>
       <div className="flex flex-col">
         <h3 className={head}>Leadership &amp; volunteering</h3>
-        {column(leadership, "leadership-list")}
-        {content.leadership.length > LEADERSHIP_UP_FRONT && (
-          <div className="mt-auto">
-            <ShowAll
-              open={all}
-              onToggle={() => setAll((v) => !v)}
-              controls="leadership-list"
-              label="leadership & volunteering"
-            />
-          </div>
-        )}
+        {column(content.leadership.slice(0, LEADERSHIP_UP_FRONT), "leadership-list")}
+        <div className="mt-auto">
+          <PageLink href="/experience#volunteering">View all leadership &amp; volunteering</PageLink>
+        </div>
       </div>
     </div>
   );
 }
 
+// The homepage shows the first two; "View all credentials" opens the full /certifications page.
 export function CredentialsGrid() {
-  const [all, setAll] = useState(false);
-  const shown = all ? content.credentials : content.credentials.slice(0, 2);
+  const shown = content.credentials.slice(0, 2);
   return (
     <div className="grid gap-x-16 gap-y-12 md:grid-cols-2">
       <div>
@@ -589,7 +489,15 @@ export function CredentialsGrid() {
           ))}
         </ul>
         {content.credentials.length > 2 && (
-          <ShowAll open={all} onToggle={() => setAll((v) => !v)} controls="credential-list" label="credentials" />
+          <Link
+            href="/certifications"
+            className="mt-8 inline-flex min-h-11 items-center text-sm text-muted transition-colors hover:text-ink"
+          >
+            View all credentials
+            <span aria-hidden className="ml-1">
+              →
+            </span>
+          </Link>
         )}
       </div>
     </div>
@@ -706,5 +614,68 @@ export function ContactFooter() {
         DEVELOP
       </div>
     </section>
+  );
+}
+
+// "What I build": four areas, each with the projects that back it up, linking to /projects.
+export function WhatIBuild() {
+  const all = [...content.projects, ...content.more];
+  return (
+    <div>
+      <ul className="grid gap-x-10 gap-y-10 sm:grid-cols-2 lg:grid-cols-4">
+        {content.services.map((s) => {
+          const proof = all.filter((p) => p.category === s.category).map((p) => p.title);
+          return (
+            <li key={s.name} className="flex flex-col border-t border-rule pt-5">
+              <h4 className="text-lg">{s.name}</h4>
+              <p className="mt-2 text-[15px] leading-relaxed text-muted">{s.text}</p>
+              {proof.length > 0 && (
+                <p className="mt-4 font-mono text-xs leading-relaxed text-ink">{proof.join(" · ")}</p>
+              )}
+            </li>
+          );
+        })}
+      </ul>
+      <Link
+        href="/projects"
+        className="mt-8 inline-flex min-h-11 items-center text-sm text-muted transition-colors hover:text-ink"
+      >
+        View all projects
+        <span aria-hidden className="ml-1">
+          →
+        </span>
+      </Link>
+    </div>
+  );
+}
+
+// Intro link to the resume PDF: reads "Resume", and decrypts into "Hire me" on hover or focus.
+// A new `text` makes DecryptedText (animateOn="view") play its reveal again for the new word.
+export function ResumeLink({ className, children }: { className?: string; children?: ReactNode }) {
+  const [hover, setHover] = useState(false);
+  return (
+    <a
+      href={content.resume}
+      target="_blank"
+      rel="noopener noreferrer"
+      className={className}
+      onPointerEnter={() => setHover(true)}
+      onPointerLeave={() => setHover(false)}
+      onFocus={() => setHover(true)}
+      onBlur={() => setHover(false)}
+    >
+      <span className="link">
+        <DecryptedText
+          text={hover ? "Hire me" : "Resume"}
+          animateOn="view"
+          sequential
+          speed={40}
+          encryptedClassName="text-muted"
+          aria-hidden
+        />
+      </span>
+      {children}
+      <span className="sr-only">Resume (PDF, opens in a new tab)</span>
+    </a>
   );
 }

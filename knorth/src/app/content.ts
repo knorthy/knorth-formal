@@ -35,10 +35,13 @@ export const content = {
     { label: "LinkedIn", href: "https://www.linkedin.com/in/tiffany-lyssa-4b210b281/" },
     { label: "X", href: "https://x.com/kno_orth" },
   ],
-  // Only projects with an image can sit in the gallery; the rest are in `more`.
+  // The intro shows this in place of X (X stays in the footer and the paw menu).
+  resume: "/Tiffany-Lyssa-Resume.pdf",
+  // The project deck, best work first. `image` is optional: a card without one shows the title.
   projects: [
     {
       title: "PsoMetric",
+      category: "Mobile apps",
       kind: "Image recognition for psoriasis severity",
       image: "/projects/mobile-psometric.webp",
       year: "",
@@ -48,7 +51,41 @@ export const content = {
       href: "https://github.com/knorthy/PsoMetric",
     },
     {
+      title: "One Indang",
+      category: "Mobile apps",
+      kind: "Digital governance app",
+      image: "/projects/mobile-oneindang.webp",
+      year: "",
+      description:
+        "The official mobile app of the Municipality of Indang: a citizen-centric platform for public services, emergency contacts, news and community issue reporting. Role: full-stack developer and UI/UX designer.",
+      tools: "Mobile app, LGU platform",
+      href: "https://github.com/knorthy/OneIndang",
+    },
+    {
+      title: "The Blind Leading the Blown Up",
+      category: "Games",
+      kind: "3D game",
+      image: "/projects/game-tbltbu.webp",
+      year: "",
+      description:
+        "A 3D game. Led the design and development end to end: gameplay mechanics, level design and project delivery. Role: lead project personnel, 3D game designer and developer.",
+      tools: "3D game design, level design",
+      href: "https://github.com/ArhonJay/TBLTBU",
+    },
+    {
+      title: "Reinforcement Learning APFC",
+      category: "Embedded & IoT",
+      kind: "Automatic power factor corrector",
+      image: "",
+      year: "",
+      description:
+        "A reinforcement learning model that dynamically optimizes power factor correction, reducing energy waste in a simulated electrical system, alongside an ESP-based corrector with real-time monitoring and cloud-based logging.",
+      tools: "Reinforcement learning, ESP32, cloud logging",
+      href: "",
+    },
+    {
       title: "MetaCampus",
+      category: "Mobile apps",
       kind: "AR for interactive student events",
       image: "/projects/mobile-metacampus.webp",
       year: "",
@@ -56,46 +93,6 @@ export const content = {
         "An augmented reality campus engagement platform. Led UI/UX design in Figma and coordinated team milestones for on-time delivery. Role: project manager, full-stack developer and UI/UX designer.",
       tools: "Augmented reality, Figma",
       href: "https://github.com/knorthy/MetaCampus",
-    },
-    {
-      title: "Dash Car Rentals",
-      kind: "Prototype",
-      image: "/projects/uiux-dash-car-rentals.webp",
-      year: "",
-      description:
-        "A responsive car rental platform prototype in Figma with intuitive booking flows and real-time availability checking. Role: full-stack developer and UI/UX designer.",
-      tools: "Figma",
-      href: "",
-    },
-    {
-      title: "IoT Earthquake Detector",
-      kind: "Freelance, embedded systems",
-      image: "/projects/iot-earthquake-detector.webp",
-      year: "",
-      description:
-        "Seismic detection on ESP controllers with automated alerts and remote monitoring through the cloud.",
-      tools: "ESP32, sensors, cloud alerts",
-      href: "",
-    },
-    {
-      title: "Misting Sanitation System",
-      kind: "Freelance, embedded systems",
-      image: "/projects/iot-misting-sanitation.webp",
-      year: "",
-      description:
-        "Arduino-powered misting pipes with sensor-triggered activation and QR-based attendance tracking.",
-      tools: "Arduino, sensors, QR attendance",
-      href: "",
-    },
-    {
-      title: "Claro",
-      kind: "Website",
-      image: "/projects/websites-claro-hero.webp",
-      year: "",
-      description:
-        "Landing page and feedback form for a personal expense tracker.",
-      tools: "Next.js, React",
-      href: "https://github.com/knorthy/WhiteString-Expense-Tracker",
     },
   ],
   // Photos on the drifting wall below Experience (files in src/assets/gallery). `title` is the alt text
@@ -124,12 +121,20 @@ export const content = {
     { image: ygg3.src, title: "Pixels booth, YGG Play Summit" },
     { image: ygg4.src, title: "YGG Play Summit" },
   ],
+  // Smaller builds: on the /projects page beside the deck's five, not on the homepage.
   more: [
-    { title: "One Indang", org: "Official mobile app of the Municipality of Indang: public services, emergency contacts, news and issue reporting", when: "", href: "https://github.com/knorthy/OneIndang" },
-    { title: "The Blind Leading the Blown Up", org: "3D game, led gameplay, level design and delivery", when: "", href: "https://github.com/ArhonJay/TBLTBU" },
-    { title: "Reinforcement learning power factor corrector", org: "Model that optimizes power factor correction in a simulated electrical system", when: "" },
-    { title: "APFC", org: "ESP-based automatic power factor corrector with real-time monitoring and cloud logging", when: "" },
-    { title: "POS systems", org: "Point-of-sale systems with inventory and real-time sales reporting for small businesses", when: "" },
+    { title: "Claro", image: "/projects/websites-claro-hero.webp", category: "Web", org: "Landing page and feedback form for a personal expense tracker", when: "", href: "https://github.com/knorthy/WhiteString-Expense-Tracker" },
+    { title: "Dash Car Rentals", image: "/projects/uiux-dash-car-rentals.webp", category: "UI/UX design", org: "Responsive car rental prototype in Figma with booking flows and real-time availability", when: "" },
+    { title: "IoT Earthquake Detector", image: "/projects/iot-earthquake-detector.webp", category: "Embedded & IoT", org: "Seismic detection on ESP controllers with automated alerts and remote cloud monitoring", when: "" },
+    { title: "Misting Sanitation System", image: "/projects/iot-misting-sanitation.webp", category: "Embedded & IoT", org: "Arduino misting pipes with sensor-triggered activation and QR-based attendance", when: "" },
+    { title: "POS systems", category: "Web", org: "Point-of-sale systems with inventory and real-time sales reporting for small businesses", when: "" },
+  ],
+  // "What I build" on the homepage: each area lists the projects (by `category`) that show it.
+  services: [
+    { name: "Web apps", category: "Web", text: "Responsive sites and web apps in Next.js and React, from landing pages to point-of-sale systems with live sales reporting." },
+    { name: "Mobile apps", category: "Mobile apps", text: "Cross-platform apps, from a React Native clinical imaging tool to the official app of the Municipality of Indang." },
+    { name: "UI/UX design", category: "UI/UX design", text: "Flows and interfaces designed in Figma by the same person who builds them. Champion of the AI in UX for FinTech Hackathon." },
+    { name: "Embedded & IoT", category: "Embedded & IoT", text: "ESP32 and Arduino builds with sensors, alerts and cloud logging." },
   ],
   skills: [
     { group: "Frontend", items: "Next.js, React, Tailwind CSS, JavaScript, TypeScript, CSS" },
@@ -220,6 +225,7 @@ export const content = {
   ],
   education: [
     { title: "BS Computer Science", org: "Cavite State University", when: "" },
+    { title: "Student Exchange Program 2026", org: "Universitas Wahid Hasyim, Indonesia", when: "Oct 2026" },
   ],
   // Dates are only filled in where they are known. The first two are shown up front.
   // `href`: paste the credential's page (Credly badge, certificate, post about the win).
@@ -229,11 +235,17 @@ export const content = {
   credentials: [
     { title: "AI in UX for FinTech Hackathon", sub: "Champion", org: "KadaKareer x Home Credit", when: "Dec 2025", href: "", award: true },
     { title: "Mechatronics Servicing NC II", org: "TESDA National Certificate", when: "2026", href: "" },
+    { title: "First Place, International Essay Competition", sub: "Student Exchange Program 2026. Also won Best Analysis, Best Innovation and Best Presentation.", org: "Universitas Wahid Hasyim", when: "Oct 2026", href: "", award: true },
+    { title: "Student Exchange Program 2026", sub: "Certificate of Participation", org: "Universitas Wahid Hasyim", when: "Oct 2026", href: "" },
+    { title: "AWS Cloud Practitioner Essentials", org: "AWS Skill Builder", when: "Nov 2026", href: "https://skillbuilder.aws/learn/94T2BEN85A/aws-cloud-practitioner-essentials/8D79F3AVR7" },
+    { title: "Artificial Intelligence Fundamentals", org: "IBM SkillsBuild", when: "Nov 2026", href: "https://www.credly.com/badges/637b1c38-f754-4c73-9706-2abb330f8166/public_url" },
+    { title: "Web Development Fundamentals", org: "IBM SkillsBuild", when: "Nov 2026", href: "https://www.credly.com/badges/2444ac68-bb62-45a9-b2b4-1cc0e872a766/public_url" },
     { title: "Enterprise Design Thinking Practitioner", org: "IBM SkillsBuild", when: "Nov 2026", href: "https://www.credly.com/badges/03900c1b-a128-4b60-9aa1-2ce8795b831b/public_url" },
     { title: "Introduction to IoT", org: "Cisco", when: "Nov 2026", href: "https://www.credly.com/badges/725d5e34-9668-4b06-bb35-2b5c9e801f3d/public_url" },
     { title: "Introduction to Cybersecurity", org: "Cisco", when: "May 2026", href: "https://www.credly.com/badges/771d7e61-8a12-4313-bee6-6edd34ded57b/public_url" },
     { title: "Cyber Threat Management", org: "Cisco", when: "May 2026", href: "https://www.credly.com/badges/be564097-b5e6-40a5-b1ec-92e18c60c022/public_url" },
-    { title: "Introduction to Cloud Computing", org: "DataCamp", when: "", href: "" },
-    { title: "Git Foundations", org: "DataCamp", when: "", href: "" },
+    { title: "Intermediate Git", org: "DataCamp", when: "Sep 2025", href: "" },
+    { title: "Introduction to Git", org: "DataCamp", when: "Sep 2025", href: "" },
+    { title: "Understanding Cloud Computing", org: "DataCamp", when: "Feb 2025", href: "" },
   ],
 };

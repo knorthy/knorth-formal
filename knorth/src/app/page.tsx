@@ -1,4 +1,3 @@
-import type { ReactNode } from "react";
 import DecryptedText from "@/components/DecryptedText";
 import { content } from "./content";
 import {
@@ -10,6 +9,8 @@ import {
   ProjectDeck,
   SkillsLoop,
   ThemeToggle,
+  ResumeLink,
+  WhatIBuild,
 } from "./sections";
 import ChatWidget from "@/components/chat/ChatWidget";
 import SkillTerminal from "./skill-terminal";
@@ -17,8 +18,6 @@ import SkillTerminal from "./skill-terminal";
 // Type scale: four sizes only. text-sm (meta), text-lg (text), `title`, `display`.
 const wrap = "mx-auto w-full max-w-[1040px] px-6";
 const tap = "inline-flex min-h-11 items-center";
-const row =
-  "border-b border-rule py-4 first:pt-0 last:border-b-0 last:pb-0 sm:flex sm:items-baseline sm:justify-between sm:gap-x-6";
 
 const sections = [
   "Credentials",
@@ -45,53 +44,6 @@ function Sample() {
   return content.sample ? (
     <span className="text-sm font-normal text-muted">Sample</span>
   ) : null;
-}
-
-function Section(props: { id: string; title: string; children: ReactNode }) {
-  return (
-    <section id={props.id} aria-labelledby={`${props.id}-title`}>
-      <div className="draw draw-view h-px bg-rule" />
-      <div className="grid gap-x-10 gap-y-6 py-14 md:grid-cols-[200px_1fr] md:py-20">
-        <h2
-          id={`${props.id}-title`}
-          className="flex items-baseline gap-3 text-lg font-medium md:flex-col md:gap-1"
-        >
-          {props.title}
-          <Sample />
-        </h2>
-        <div className="min-w-0">{props.children}</div>
-      </div>
-    </section>
-  );
-}
-
-function Rows(props: {
-  items: { title: string; org: string; when: string; href?: string }[];
-}) {
-  return (
-    <ul>
-      {props.items.map((item) => (
-        <li key={`${item.title}-${item.org}`} className={row}>
-          <span className="flex flex-wrap items-baseline gap-x-3">
-            {item.href ? (
-              <a href={item.href} target="_blank" rel="noopener noreferrer" className="inline-flex items-baseline font-medium">
-                <span className="link">{item.title}</span>
-                <Arrow />
-              </a>
-            ) : (
-              <span className="font-medium">{item.title}</span>
-            )}
-            <span className="text-muted">{item.org}</span>
-          </span>
-          {item.when && (
-            <span className="block text-sm text-muted tabular-nums">
-              {item.when}
-            </span>
-          )}
-        </li>
-      ))}
-    </ul>
-  );
 }
 
 export default function Home() {
@@ -166,7 +118,7 @@ export default function Home() {
               <Sample />
             </p>
             <p className="mt-6 flex flex-wrap items-center gap-x-7">
-              {content.links.map((l) => (
+              {content.links.filter((l) => l.label !== "X").map((l) => (
                 <a
                   key={l.label}
                   href={l.href}
@@ -178,6 +130,9 @@ export default function Home() {
                   <Arrow />
                 </a>
               ))}
+              <ResumeLink className={tap}>
+                <Arrow />
+              </ResumeLink>
             </p>
             <p className="mt-1 text-muted">{content.status}</p>
           </div>
@@ -210,16 +165,23 @@ export default function Home() {
           <div className="draw h-px bg-rule" />
           <ProjectDeck />
           <div className="h-px bg-rule" />
-          <h3 className="mt-10 mb-4 font-sans text-sm text-muted">Also built</h3>
-          <Rows items={content.more} />
+          <h3 className="mt-10 mb-6 font-sans text-sm text-muted">What I build</h3>
+          <WhatIBuild />
         </section>
 
-        <Section id="skills" title="Skills">
-          <div className="mb-10">
-            <SkillsLoop />
+        {/* Heading above; the logo strip and the terminal use the full sheet width. */}
+        <section id="skills" aria-labelledby="skills-title">
+          <div className="draw draw-view h-px bg-rule" />
+          <div className="py-14 md:py-20">
+            <h2 id="skills-title" className="mb-8 text-lg font-medium">
+              Skills
+            </h2>
+            <div className="mb-10">
+              <SkillsLoop />
+            </div>
+            <SkillTerminal />
           </div>
-          <SkillTerminal />
-        </Section>
+        </section>
 
         <section id="experience" aria-label="Experience">
           <div className="draw draw-view h-px bg-rule" />
