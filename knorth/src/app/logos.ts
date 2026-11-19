@@ -1,5 +1,7 @@
 // Issuer and school logos from src/assets/logo, shared by the homepage and the certifications page.
 // The files are white on transparent; pages draw them as a mask in the ink colour (see LogoMark).
+import accord from "@/assets/logo/ACCORD.png";
+import aws from "@/assets/logo/AWS.png";
 import cisco from "@/assets/logo/CISCO.png";
 import cvsu from "@/assets/logo/CVSU.png";
 import datacamp from "@/assets/logo/DATACAMP.png";
@@ -8,6 +10,9 @@ import ibm from "@/assets/logo/IBM.png";
 import tesda from "@/assets/logo/TESDA.png";
 
 const LOGOS: Record<string, string> = {
+  AWS: aws.src,
+  // The exchange program's logo stands for its host, Universitas Wahid Hasyim.
+  "Universitas Wahid Hasyim": accord.src,
   Cisco: cisco.src,
   DataCamp: datacamp.src,
   IBM: ibm.src,

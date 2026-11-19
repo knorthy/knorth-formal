@@ -46,7 +46,6 @@ export default function ProjectsPage() {
       title="Projects"
       intro="Mobile apps, web builds, a 3D game and embedded hardware, grouped by what they are. Each links to its code where the code is public."
       count={`${total} projects`}
-      back={{ href: "/#projects", label: "Back to the portfolio" }}
     >
       <div className="[&_img]:grayscale">
         <GroupedCards groups={groups()} noun="project" label="Filter by type" />

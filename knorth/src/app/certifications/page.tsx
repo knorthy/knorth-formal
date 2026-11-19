@@ -15,7 +15,6 @@ export default function CertificationsPage() {
       title="Certifications"
       intro="Courses, certificates and awards behind the work on this site, from design thinking and cybersecurity to IoT and a hackathon win."
       count={`${content.credentials.length} credentials`}
-      back={{ href: "/#credentials", label: "Back to the portfolio" }}
     >
       <CertificationsView />
     </PageShell>

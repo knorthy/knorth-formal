@@ -2,13 +2,11 @@
 // Kniah: the pixel paw in the bottom-right corner. Clicking it opens a branched menu (page sections,
 // socials, and "Ask Kniah"); "Ask Kniah", or Alt+K from anywhere, opens a full-screen "ask"
 // overlay modelled on bryllim.com: the page blurs out, a big pixel-font prompt asks for a question,
-// and the reply comes back one line at a time in the same spot. The first question of a visit first
-// reads out what the visitor's browser shared on page load (lib/exposure.ts); then Gemini's answer
-// from /api/chat takes its place. Enter skips the readout, Esc or a click outside closes.
+// and the reply comes back one line at a time in the same spot: "thinking...", then Gemini's answer
+// from /api/chat streams in. Esc or a click outside closes.
 import { useCallback, useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { useReducedMotion } from "@/components/useReducedMotionSafe";
-import { collectExposure } from "@/lib/exposure";
 import KnoPaw, { type KnoMood } from "./KnoPaw";
 import BranchedMenu, { type BranchedMenuItem } from "@/components/BranchedMenu";
 import { content } from "@/app/content";
@@ -43,33 +41,6 @@ const MENU: BranchedMenuItem[] = [
   { label: "Ask Kniah", value: "ask" },
 ];
 const FLIP_MS = 820;
-
-// One plain sentence per thing the browser gave away. Labels come from lib/exposure.ts.
-const SAY: Record<string, (v: string) => string> = {
-  "IP address": (v) => (v === "localhost" ? "you're on localhost, so your public ip stays hidden here" : `your public ip address is ${v}`),
-  Location: (v) => `you are somewhere around ${v}`,
-  Connection: (v) => `your connection is ${v}`,
-  System: (v) => `you are on ${v}`,
-  Browser: (v) => `you are browsing with ${v}`,
-  Device: (v) => `your device is a ${v}`,
-  CPU: (v) => `your processor runs ${v}`,
-  Memory: (v) => `you have ${v} of memory`,
-  Graphics: (v) => `your graphics card is ${v}`,
-  Screen: (v) => `your screen is ${v}`,
-  "Time zone": (v) => `your timezone is ${v}`,
-  Languages: (v) => `your browser speaks ${v}`,
-  "Came from": (v) => (v.startsWith("typed") ? "you typed this address in, or came from a bookmark" : `you came here from ${v}`),
-};
-
-async function exposureLines(): Promise<string[]> {
-  const data = await collectExposure();
-  const lines = data.groups
-    .flatMap((g) => g.rows)
-    .filter((r) => SAY[r.label])
-    .map((r) => SAY[r.label](r.value).toLowerCase());
-  if (data.fingerprint) lines.push(`together that's a fingerprint: ${data.fingerprint.match(/.{1,4}/g)!.join(" ")}`);
-  return lines;
-}
 
 // Starts the request right away so the answer streams in while the readout plays.
 function startAnswer(messages: Msg[], signal: AbortSignal) {
@@ -121,14 +92,10 @@ export default function ChatWidget() {
   const [bubble, setBubble] = useState<string | null>(null);
   const [title, setTitle] = useState<Title>({ key: 0, text: DEFAULT_TITLE, small: false, loading: false });
   const [busy, setBusy] = useState(false);
-  const [revealing, setRevealing] = useState(false);
   const [error, setError] = useState(false);
 
   const history = useRef<Msg[]>([]);
-  const revealed = useRef(false);
   const run = useRef(0); // bumped on close, so a running sequence knows to stop
-  const skipped = useRef(false);
-  const wake = useRef<(() => void) | null>(null);
   const abort = useRef<AbortController | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const launcherRef = useRef<HTMLButtonElement>(null);
@@ -136,14 +103,6 @@ export default function ChatWidget() {
 
   const show = (text: string, loading = false) =>
     setTitle((t) => ({ key: t.key + 1, text, small: true, loading }));
-  // Waits unless the visitor skipped; resolves false once the overlay has closed.
-  const wait = (ms: number, id: number) =>
-    new Promise<boolean>((resolve) => {
-      if (skipped.current) return resolve(run.current === id);
-      const t = setTimeout(() => resolve(run.current === id), ms);
-      wake.current = () => { clearTimeout(t); resolve(run.current === id); };
-    });
-
   const close = useCallback(() => {
     run.current++;
     abort.current?.abort();
@@ -156,7 +115,6 @@ export default function ChatWidget() {
     setInput("");
     setBubble(null);
     setBusy(false);
-    setRevealing(false);
     setError(false);
     setTitle((t) => ({ key: t.key + 1, text: DEFAULT_TITLE, small: false, loading: false }));
     setOpen(true);
@@ -206,38 +164,11 @@ export default function ChatWidget() {
     setError(false);
     setInput("");
     setBubble(question);
-    skipped.current = false;
     history.current = [...history.current, { role: "user" as const, content: question }].slice(-12);
     abort.current = new AbortController();
     const answer = startAnswer(history.current, abort.current.signal);
 
     show("thinking...", true);
-    if (!(await wait(1200, id))) return;
-
-    if (!revealed.current) {
-      revealed.current = true;
-      setRevealing(true);
-      show("analyzing...", true);
-      const facts = await exposureLines();
-      if (!(await wait(1000, id))) return;
-      const script = [
-        "before i answer",
-        "here is what your browser already shared the moment you opened this site",
-        ...facts,
-        "none of this needed your permission",
-        "your browser shares it with every website you open, automatically",
-        "so be mindful of what you click, and who you trust online",
-        "as for your question",
-      ];
-      for (const [i, line] of script.entries()) {
-        if (i === 1) setBubble(null);
-        show(line);
-        if (!(await wait(1600 + line.length * 22, id))) return;
-      }
-      setRevealing(false);
-      setBubble(question);
-    }
-
     // The answer: stream into one title so it doesn't re-animate on every chunk
     const key = Date.now();
     const render = () => {
@@ -407,9 +338,7 @@ export default function ChatWidget() {
                   <span>{input}</span>
                   <span className="ask-caret" />
                 </div>
-              ) : (
-                revealing && <p className="font-mono text-sm text-muted">press enter to skip</p>
-              )}
+              ) : null}
 
               <input
                 ref={inputRef}
@@ -425,10 +354,7 @@ export default function ChatWidget() {
                 onKeyDown={(e) => {
                   if (e.key !== "Enter") return;
                   e.preventDefault();
-                  if (busy) {
-                    skipped.current = true;
-                    wake.current?.();
-                  } else ask(input);
+                  if (!busy) ask(input);
                 }}
               />
             </motion.div>

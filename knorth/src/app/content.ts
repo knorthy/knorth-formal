@@ -41,7 +41,7 @@ export const content = {
   projects: [
     {
       title: "PsoMetric",
-      category: "Mobile apps",
+      category: "Machine learning",
       kind: "Image recognition for psoriasis severity",
       image: "/projects/mobile-psometric.webp",
       year: "",
@@ -74,7 +74,7 @@ export const content = {
     },
     {
       title: "Reinforcement Learning APFC",
-      category: "Embedded & IoT",
+      category: "Machine learning",
       kind: "Automatic power factor corrector",
       image: "",
       year: "",
@@ -124,10 +124,17 @@ export const content = {
   // Smaller builds: on the /projects page beside the deck's five, not on the homepage.
   more: [
     { title: "Claro", image: "/projects/websites-claro-hero.webp", category: "Web", org: "Landing page and feedback form for a personal expense tracker", when: "", href: "https://github.com/knorthy/WhiteString-Expense-Tracker" },
-    { title: "Dash Car Rentals", image: "/projects/uiux-dash-car-rentals.webp", category: "UI/UX design", org: "Responsive car rental prototype in Figma with booking flows and real-time availability", when: "" },
+    { title: "Dash Car Rentals", image: "/projects/uiux-dash-car-rentals.webp", category: "Web", org: "Responsive car rental website with booking flows and real-time availability", when: "" },
     { title: "IoT Earthquake Detector", image: "/projects/iot-earthquake-detector.webp", category: "Embedded & IoT", org: "Seismic detection on ESP controllers with automated alerts and remote cloud monitoring", when: "" },
     { title: "Misting Sanitation System", image: "/projects/iot-misting-sanitation.webp", category: "Embedded & IoT", org: "Arduino misting pipes with sensor-triggered activation and QR-based attendance", when: "" },
     { title: "POS systems", category: "Web", org: "Point-of-sale systems with inventory and real-time sales reporting for small businesses", when: "" },
+    { title: "tilaOK", category: "Machine learning", org: "Machine learning project with a companion website", when: "" },
+    { title: "CIRCU-360", category: "Machine learning", org: "Machine learning project", when: "" },
+    { title: "SmartHerd", category: "Mobile apps", org: "Mobile app", when: "" },
+    { title: "Juno", category: "Mobile apps", org: "Mobile assistant app", when: "" },
+    { title: "HomeVision", category: "Mobile apps", org: "Mobile app with machine learning", when: "" },
+    { title: "QCSP Competition", category: "Web", org: "Landing page for the QCSP competition", when: "" },
+    { title: "Personal websites", category: "Web", org: "Personal websites I designed and built", when: "" },
   ],
   // "What I build" on the homepage: each area lists the projects (by `category`) that show it.
   services: [
@@ -221,11 +228,11 @@ export const content = {
     { title: "Support Council, Creatives and Graphics", org: "Computer Science Student Organization", when: "Jun 2024 — Jun 2025" },
     { title: "Technical Team, full-stack developer", org: "Quantum Computing Society of the Philippines", sub: "Volunteer", when: "Apr 2026" },
     { title: "Creatives and Graphics", org: "Arduino Philippines", sub: "Volunteer", when: "Mar 2026" },
-    { title: "Technical Team, full-stack developer", org: "Blockchain Campus Conference", sub: "Volunteer", when: "May — Nov 2025" },
+    { title: "Technical Team", org: "Blockchain Campus Conference", sub: "Volunteer", when: "May — Nov 2025" },
   ],
   education: [
-    { title: "BS Computer Science", org: "Cavite State University", when: "" },
-    { title: "Student Exchange Program 2026", org: "Universitas Wahid Hasyim, Indonesia", when: "Oct 2026" },
+    { label: "Bachelor of Science in", title: "Computer Science", org: "Cavite State University", when: "" },
+    { label: "ACCORD 2026", title: "Student Exchange Program", org: "Universitas Wahid Hasyim, Indonesia", when: "Oct 2026" },
   ],
   // Dates are only filled in where they are known. The first two are shown up front.
   // `href`: paste the credential's page (Credly badge, certificate, post about the win).
@@ -233,8 +240,8 @@ export const content = {
   // `award: true` are achievements and get "Learn more" (e.g. a post about the win) and a plain date.
   // Until an `href` is filled in, the link asks Kniah about that entry instead.
   credentials: [
-    { title: "AI in UX for FinTech Hackathon", sub: "Champion", org: "KadaKareer x Home Credit", when: "Dec 2025", href: "", award: true },
     { title: "Mechatronics Servicing NC II", org: "TESDA National Certificate", when: "2026", href: "" },
+    { title: "AI in UX for FinTech Hackathon", sub: "Champion", org: "KadaKareer x Home Credit", when: "Dec 2025", href: "", award: true },
     { title: "First Place, International Essay Competition", sub: "Student Exchange Program 2026. Also won Best Analysis, Best Innovation and Best Presentation.", org: "Universitas Wahid Hasyim", when: "Oct 2026", href: "", award: true },
     { title: "Student Exchange Program 2026", sub: "Certificate of Participation", org: "Universitas Wahid Hasyim", when: "Oct 2026", href: "" },
     { title: "AWS Cloud Practitioner Essentials", org: "AWS Skill Builder", when: "Nov 2026", href: "https://skillbuilder.aws/learn/94T2BEN85A/aws-cloud-practitioner-essentials/8D79F3AVR7" },

@@ -1,5 +1,5 @@
 // The frame shared by the inner pages (/projects, /experience, /certifications): header with page links and
-// the theme toggle, a big title, an intro line and a count, the page body, a link back home, and
+// the theme toggle, a big title, an intro line and a count, the page body, and
 // Kniah. Each page passes its own title, words and content.
 import type { ReactNode } from "react";
 import Link from "next/link";
@@ -22,7 +22,6 @@ export default function PageShell(props: {
   title: string;
   intro: string;
   count: string;
-  back: { href: string; label: string };
   children: ReactNode;
 }) {
   const initials = content.name
@@ -58,15 +57,6 @@ export default function PageShell(props: {
         <p className="mt-4 text-sm text-muted tabular-nums">{props.count}</p>
 
         <div className="mt-12">{props.children}</div>
-
-        <p className="mt-20">
-          <Link href={props.back.href} className={`${tap} text-sm text-muted transition-colors hover:text-ink`}>
-            <span aria-hidden className="mr-1">
-              ←
-            </span>
-            <span className="link">{props.back.label}</span>
-          </Link>
-        </p>
       </main>
       <ChatWidget />
     </div>

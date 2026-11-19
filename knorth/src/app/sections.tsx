@@ -466,7 +466,7 @@ export function CredentialsGrid() {
         <h3 className={head}>Education</h3>
         <ul className="flex flex-col gap-12">
           {content.education.map((e) => (
-            <Entry key={e.title} Logo={TbSchool} logoSrc={logoFor(e.org)} title={e.title} sub={e.org} when={e.when} />
+            <Entry key={e.title} Logo={TbSchool} logoSrc={logoFor(e.org)} label={"label" in e ? e.label : undefined} title={e.title} sub={e.org} when={e.when} />
           ))}
         </ul>
       </div>
@@ -480,8 +480,8 @@ export function CredentialsGrid() {
               logoSrc={logoFor(c.org)}
               label={c.org}
               title={c.title}
-              sub={"sub" in c ? c.sub : undefined}
-              when={"award" in c ? c.when : c.when && `Issued ${c.when}`}
+              sub={"award" in c ? [("sub" in c ? c.sub : ""), c.when].filter(Boolean).join(" · ") : "sub" in c ? c.sub : undefined}
+              when={"award" in c ? undefined : c.when && `Issued ${c.when}`}
               href={c.href}
               linkLabel={"award" in c ? "Learn more" : "Show credential"}
               ask={`tell me about her ${c.title} ${"award" in c ? "win" : "certificate"} from ${c.org}`}

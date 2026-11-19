@@ -94,7 +94,6 @@ export default function ExperiencePage() {
       title="Experience"
       intro="Where she has worked, and the communities she helps run and volunteers for, from AWS student groups to conference tech teams."
       count={`${content.experience.length} roles · ${content.leadership.length} in leadership and volunteering · ${total} in all`}
-      back={{ href: "/#experience", label: "Back to the portfolio" }}
     >
       <section id="work" aria-labelledby="work-title" className="scroll-mt-8">
         <h2 id="work-title" className="mb-6 font-mono text-xs tracking-[0.08em] text-muted uppercase">
