@@ -98,6 +98,9 @@ const BranchedMenu: React.FC<BranchedMenuProps> = ({
     const first = items.find((it, i) => it.children && toSet(defaultOpen).has(i));
     return first?.children?.[0]?.value ?? '';
   });
+  // Hovering a row sends the line to it; leaving sends it back to the active one.
+  const [hoverKid, setHoverKid] = useState<string | null>(null);
+  const [hoverHead, setHoverHead] = useState<number | null>(null);
   const navRef = useRef<HTMLElement>(null);
   const heads = useRef<(HTMLButtonElement | null)[]>([]);
   const markerRef = useRef<HTMLSpanElement>(null);
@@ -106,8 +109,8 @@ const BranchedMenu: React.FC<BranchedMenuProps> = ({
     latest.current = { onSelect, onToggle };
   });
 
-  const activeSection = items.findIndex(it => it.children?.some(kid => kid.value === active));
-  const markerShown = activeSection >= 0 && open.has(activeSection);
+  const activeSection = hoverHead ?? items.findIndex(it => it.children?.some(kid => kid.value === (hoverKid ?? active)));
+  const markerShown = hoverHead !== null || (activeSection >= 0 && open.has(activeSection));
   useLayoutEffect(() => {
     const place = (glide: boolean) => {
       const m = markerRef.current;
@@ -160,6 +163,10 @@ const BranchedMenu: React.FC<BranchedMenuProps> = ({
   return (
     <nav
       ref={navRef}
+      onMouseLeave={() => {
+        setHoverKid(null);
+        setHoverHead(null);
+      }}
       className={`relative flex w-fit max-w-[min(var(--bm-w),100%)] flex-col pl-3.5 leading-[1.2] [color:var(--bm-ink)] [font-family:inherit] [font-size:var(--bm-font)] before:absolute before:top-2 before:bottom-0 before:left-0 before:w-0.5 before:rounded-[1px] before:[background:linear-gradient(to_bottom,var(--bm-line)_0%,var(--bm-line)_55%,transparent_100%)] before:content-['']${className ? ` ${className}` : ''}`}
       style={
         {
@@ -203,6 +210,12 @@ const BranchedMenu: React.FC<BranchedMenuProps> = ({
               aria-expanded={kids ? isOpen : undefined}
               aria-current={leafActive ? 'true' : undefined}
               data-active={leafActive ? '' : undefined}
+              onMouseEnter={() => {
+                setHoverHead(i);
+                setHoverKid(null);
+              }}
+              onFocus={() => setHoverHead(i)}
+              onBlur={() => setHoverHead(null)}
               onClick={() => (kids ? toggle(i) : select(leafValue, item))}
             >
               {item.label}
@@ -235,7 +248,7 @@ const BranchedMenu: React.FC<BranchedMenuProps> = ({
                           d={reach(k)}
                           style={{
                             strokeDasharray: length(k),
-                            strokeDashoffset: kid.value === active ? 0 : length(k)
+                            strokeDashoffset: kid.value === (hoverKid ?? active) ? 0 : length(k)
                           }}
                         />
                       ))}
@@ -248,6 +261,12 @@ const BranchedMenu: React.FC<BranchedMenuProps> = ({
                         aria-current={kid.value === active ? 'true' : undefined}
                         data-active={kid.value === active ? '' : undefined}
                         tabIndex={isOpen ? 0 : -1}
+                        onMouseEnter={() => {
+                          setHoverKid(kid.value);
+                          setHoverHead(null);
+                        }}
+                        onFocus={() => setHoverKid(kid.value)}
+                        onBlur={() => setHoverKid(null)}
                         onClick={() => select(kid.value, kid)}
                       >
                         {kid.icon ? (

@@ -1,7 +1,7 @@
 // Kniah chat: streams short answers about Tiffany from Google Gemini, grounded in the site's own data.
 // Needs GEMINI_API_KEY in .env.local (free from https://aistudio.google.com/apikey).
 // Optional GEMINI_MODEL picks the first model to try; otherwise fast free-tier models are tried in order.
-import { ApiError, GoogleGenAI } from "@google/genai";
+import { ApiError, GoogleGenAI, type GenerateContentResponse } from "@google/genai";
 import { buildSystemPrompt } from "@/lib/chat-knowledge";
 
 // Google retires and throttles models often, so a busy or retired model falls through to the next one.
@@ -13,6 +13,7 @@ const MODELS = [
   "gemini-3.8-flash",
 ];
 const RETRYABLE = new Set([404, 429, 500, 503]);
+const FIRST_CHUNK_MS = 10_000; // how long one model may stay silent before the next is tried
 const MAX_TURNS = 12; // conversation history sent per request
 const MAX_CHARS = 600; // per visitor message
 const RATE_LIMIT = { windowMs: 10 * 60 * 1000, max: 20 }; // per visitor IP
@@ -70,29 +71,41 @@ export async function POST(req: Request) {
       try {
         // Gemini calls the assistant side "model"
         const contents = messages.map((m) => ({ role: m.role === "assistant" ? "model" : "user", parts: [{ text: m.content }] }));
-        let stream: Awaited<ReturnType<typeof ai.models.generateContentStream>> | null = null;
+        // A model that is throttled can sit silent for a minute, so give each one 10s to start
+        // answering, then fall through to the next.
+        let chunks: AsyncIterator<GenerateContentResponse> | null = null;
+        let first: IteratorResult<GenerateContentResponse> | null = null;
         for (const [i, model] of MODELS.entries()) {
+          const ctl = new AbortController();
+          const timer = setTimeout(() => ctl.abort(), FIRST_CHUNK_MS);
           try {
-            stream = await ai.models.generateContentStream({
+            const stream = await ai.models.generateContentStream({
               model,
               contents,
               config: {
                 systemInstruction: SYSTEM,
                 maxOutputTokens: 2048, // the prompt asks for short answers; this is only a ceiling
                 temperature: 0.7,
+                abortSignal: ctl.signal,
               },
             });
+            chunks = stream[Symbol.asyncIterator]();
+            first = await chunks.next();
+            clearTimeout(timer);
             break;
           } catch (error) {
+            clearTimeout(timer);
             const last = i === MODELS.length - 1;
-            if (last || !(error instanceof ApiError && RETRYABLE.has(error.status))) throw error;
+            const retry = ctl.signal.aborted || (error instanceof ApiError && RETRYABLE.has(error.status));
+            if (last || !retry) throw ctl.signal.aborted ? new ApiError({ message: "model timed out", status: 503 }) : error;
           }
         }
-        if (!stream) throw new Error("no model available");
+        if (!chunks || !first) throw new Error("no model available");
 
         let sent = false;
         let blocked = false;
-        for await (const chunk of stream) {
+        for (let step = first; !step.done; step = await chunks.next()) {
+          const chunk = step.value;
           const text = chunk.text;
           if (text) {
             controller.enqueue(encoder.encode(text));

@@ -39,7 +39,7 @@ const MENU: BranchedMenuItem[] = [
     ],
   },
   { label: "Socials", children: content.links.map((l) => ({ value: l.href, label: l.label })) },
-  { label: "Ask Kniah", value: "ask" },
+  { label: "Ask Tiffany", value: "ask" },
 ];
 const FLIP_MS = 820;
 
@@ -243,7 +243,7 @@ export default function ChatWidget() {
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: 6, transition: { duration: 0.12 } }}
               transition={{ duration: 0.22, ease: EASE }}
-              className="origin-bottom-right border border-rule bg-paper px-4 py-3"
+              className="origin-bottom-right px-1 py-1"
             >
               <BranchedMenu
                 items={MENU}
@@ -267,7 +267,7 @@ export default function ChatWidget() {
           aria-label="Open the site menu"
           aria-expanded={menu}
           aria-controls="kno-menu"
-          className="kno-launcher relative grid place-items-center w-20 h-16"
+          className="kno-launcher relative grid place-items-center w-20 h-14"
         >
           <motion.span
             key={hop}
@@ -277,7 +277,7 @@ export default function ChatWidget() {
             transition={{ duration: 0.55, ease: "easeOut" }}
             style={{ transformOrigin: "50% 100%" }}
           >
-            <KnoPaw size={76} mood={launcherMood} />
+            <KnoPaw size={58} mood={launcherMood} />
           </motion.span>
         </button>
       </div>
@@ -288,7 +288,7 @@ export default function ChatWidget() {
           <motion.div
             role="dialog"
             aria-modal="true"
-            aria-label="Ask Kniah about Tiffany"
+            aria-label="Ask Tiffany"
             className="fixed inset-0 z-[100] flex items-center p-6"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}

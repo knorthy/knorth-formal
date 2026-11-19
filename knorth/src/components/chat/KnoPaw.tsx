@@ -1,50 +1,45 @@
 "use client";
-// Kniah's icon: a pixel paw print in flat ink, shaded with the muted grey along its bottom edge.
-// Monochrome: both colours come from the site's tokens, so it follows light and dark mode.
-// The kno-mover / kno-body layers are what kno.css animates for each `mood`.
+// Kniah's icon: a chubby pixel cat, tail curled on the left. Flat ink; the two
+// eyes are gaps so the page shows through, so it follows light and dark mode. Drawn at 2px a cell
+// (size 58 on a 29-wide viewBox) to keep the pixels crisp. The kno-mover / kno-body layers are what
+// kno.css animates for each `mood`.
 import PixelGrid, { type Palette } from "./PixelGrid";
 import "./kno.css";
 
 export type KnoMood = "idle" | "flip" | "sing" | "spin" | "sleep" | "think" | "sit" | "dizzy";
 
-const PALETTE: Palette = { B: "var(--color-ink)", S: "var(--color-muted)" };
+const PALETTE: Palette = { B: "var(--color-ink)" };
 
-// 26 x 22: four toes above one wide pad.
-const PAW = [
-  "......BBBBB....BBBBB......",
-  ".....BBBBBBB..BBBBBBB.....",
-  ".....BBBBBBB..BBBBBBB.....",
-  ".....BBBBBBB..BBBBBBB.....",
-  "......BBBBB....BBBBB......",
-  ".......BBB......BBB.......",
-  "..BBB................BBB..",
-  ".BBBBB..............BBBBB.",
-  ".BBBBB..............BBBBB.",
-  ".BBBBB...BBBBBBBB...BBBBB.",
-  "..BBBB..BBBBBBBBBB..BBBB..",
-  "...BBB.BBBBBBBBBBBB.BBB...",
-  "....B.BBBBBBBBBBBBBB.B....",
-  ".....BBBBBBBBBBBBBBBB.....",
-  "....BBBBBBBBBBBBBBBBBB....",
-  "....BBBBBBBBBBBBBBBBBB....",
-  "....BBBBBBBBBBBBBBBBBB....",
-  "....BBBBBBBBBBBBBBBBBB....",
-  ".....BBBBBBBBBBBBBBBB.....",
-  "......BBBBBBBBBBBBBB......",
-  ".......SSSSSSSSSSSS.......",
-  ".........SSSSSSSS.........",
+// 25 x 16, traced cell by cell from the reference sprite. Ears are outlined, the eyes are gaps.
+const CAT = [
+  "..............B.......B..",
+  ".............BBB.....BBB.",
+  "............BB.B....BB.B.",
+  "...........BB..BB..BB..B.",
+  "..........BB..BBBBBBBB.B.",
+  "........BBBBBBBBBBBBBBBB.",
+  ".......BBBBBBBBBBBBBBBBB.",
+  "BB....BBBBBBBBBBBBBBBBBB.",
+  "BBB...BBBBBBBBBBBBBBBBBB.",
+  "BBB...BBBBBBBBBBBBBBBBBBB",
+  ".BBB..BBBBBBBB.BBBBBB.BBB",
+  ".BBBBBBBBBBBBB.BBBBBB.BBB",
+  "..BBBBBBBBBBBBBBBBBBBBBBB",
+  "....BBBBBBBBBBBBBBBBBBBB.",
+  "........BBBBBBBBBBBBBBB..",
+  "..........BBBBBBBBBBB....",
 ];
 
-export default function KnoPaw({ size = 72, mood = "idle", className = "" }: {
+export default function KnoPaw({ size = 58, mood = "idle", className = "" }: {
   size?: number;
   mood?: KnoMood;
   className?: string;
 }) {
   return (
     <svg
-      viewBox="0 0 34 25"
+      viewBox="0 0 29 20"
       width={size}
-      height={(size * 25) / 34}
+      height={(size * 20) / 29}
       shapeRendering="crispEdges"
       aria-hidden
       data-mood={mood}
@@ -52,7 +47,7 @@ export default function KnoPaw({ size = 72, mood = "idle", className = "" }: {
     >
       <g className="kno-mover">
         <g className="kno-body">
-          <PixelGrid rows={PAW} palette={PALETTE} x={4} y={2} />
+          <PixelGrid rows={CAT} palette={PALETTE} x={2} y={2} />
         </g>
       </g>
     </svg>
