@@ -165,7 +165,7 @@ export default function Home() {
           <div className="draw h-px bg-rule" />
           <ProjectDeck />
           <div className="h-px bg-rule" />
-          <h3 className="mt-10 mb-6 font-sans text-sm text-muted">What I build</h3>
+          <h3 className="mt-10 mb-6 font-sans text-sm text-muted">What I can offer</h3>
           <WhatIBuild />
         </section>
 
@@ -173,11 +173,13 @@ export default function Home() {
         <section id="skills" aria-labelledby="skills-title">
           <div className="draw draw-view h-px bg-rule" />
           <div className="py-14 md:py-20">
-            <h2 id="skills-title" className="mb-8 text-lg font-medium">
-              Skills
-            </h2>
-            <div className="mb-10">
-              <SkillsLoop />
+            <div className="mb-10 flex items-center gap-6">
+              <h2 id="skills-title" className="text-lg font-medium">
+                Skills
+              </h2>
+              <div className="min-w-0 flex-1">
+                <SkillsLoop />
+              </div>
             </div>
             <SkillTerminal />
           </div>

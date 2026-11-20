@@ -14,10 +14,12 @@ import type { IconType } from "react-icons";
 import {
   SiArduino, SiCplusplus, SiCss, SiDavinciresolve, SiEspressif, SiFigma, SiFirebase, SiFlutter,
   SiGit, SiGithub, SiJavascript, SiLaravel, SiMysql, SiNextdotjs, SiNodedotjs, SiPicsart,
-  SiPython, SiReact, SiSpringboot, SiSupabase, SiTailwindcss, SiTensorflow, SiTypescript, SiVercel,
+  SiPython, SiReact, SiSupabase, SiTailwindcss, SiTensorflow, SiTypescript, SiVercel,
+  SiDocker, SiExpo, SiFastapi, SiGodotengine, SiGooglegemini, SiNpm, SiNumpy, SiOpencv, SiPandas,
+  SiPytorch, SiScikitlearn, SiStreamlit, SiVite, SiYolo,
 } from "react-icons/si";
 import {
-  TbBrain, TbBrandAdobeAfterEffect, TbBrandAdobeIllustrator, TbBrandAdobePhotoshop,
+  TbArrowsExchange, TbBrandReactNative, TbBrain, TbStack2, TbBrandAdobeAfterEffect, TbBrandAdobeIllustrator, TbBrandAdobePhotoshop,
   TbBrandAdobePremiere, TbBrandAws, TbBrandVscode, TbBrush, TbSchool, TbScissors, TbTrophy,
 } from "react-icons/tb";
 import { content } from "./content";
@@ -276,12 +278,16 @@ export function ProjectDeck() {
 const TECH_ICONS: Record<string, IconType> = {
   "Next.js": SiNextdotjs, React: SiReact, "Tailwind CSS": SiTailwindcss, JavaScript: SiJavascript,
   TypeScript: SiTypescript, CSS: SiCss, "Node.js": SiNodedotjs, Python: SiPython, "C++": SiCplusplus,
-  Laravel: SiLaravel, MySQL: SiMysql, Firebase: SiFirebase, Supabase: SiSupabase, "Spring Boot": SiSpringboot,
+  Laravel: SiLaravel, MySQL: SiMysql, Firebase: SiFirebase, Supabase: SiSupabase,
   FlutterFlow: SiFlutter, Arduino: SiArduino, ESP32: SiEspressif, TensorFlow: SiTensorflow,
   Gymnasium: TbBrain, AWS: TbBrandAws, Vercel: SiVercel, Figma: SiFigma, Photoshop: TbBrandAdobePhotoshop,
   Canva: TbBrush, CapCut: TbScissors, "Premiere Pro": TbBrandAdobePremiere, Illustrator: TbBrandAdobeIllustrator,
   "After Effects": TbBrandAdobeAfterEffect, "DaVinci Resolve": SiDavinciresolve, Picsart: SiPicsart,
   Git: SiGit, GitHub: SiGithub, "VS Code": TbBrandVscode,
+  FastAPI: SiFastapi, "React Native": TbBrandReactNative, CORS: TbArrowsExchange, Expo: SiExpo,
+  "Godot 4": SiGodotengine, GDScript: SiGodotengine, PyTorch: SiPytorch, YOLOv8: SiYolo, YOLO11: SiYolo, "Google Gemini": SiGooglegemini,
+  Streamlit: SiStreamlit, OpenCV: SiOpencv, "scikit-learn": SiScikitlearn, pandas: SiPandas, NumPy: SiNumpy,
+  npm: SiNpm, Docker: SiDocker, Vite: SiVite, Zustand: TbStack2,
 };
 
 const skillLogos = content.skills.flatMap((group) =>
@@ -383,7 +389,7 @@ function Entry(props: {
               className={linkClass}
             >
               <span className="link">{props.linkLabel ?? "Learn more"}</span>
-              <span aria-hidden className="ml-1">&rarr;</span>
+              <span aria-hidden className="ml-1">↗</span>
               <span className="sr-only"> about {props.title}: asks Kniah</span>
             </button>
           )
@@ -409,7 +415,7 @@ function PageLink({ href, children }: { href: string; children: string }) {
     >
       {children}
       <span aria-hidden className="ml-1">
-        →
+        ↗
       </span>
     </Link>
   );
@@ -486,7 +492,7 @@ export function CredentialsGrid() {
           >
             View all credentials
             <span aria-hidden className="ml-1">
-              →
+              ↗
             </span>
           </Link>
         )}
@@ -514,6 +520,7 @@ const useYear = () => useSyncExternalStore(noop, () => new Date().getFullYear(),
 export function ContactFooter() {
   const year = useYear();
   const [status, setStatus] = useState<"idle" | "sending" | "sent" | "error">("idle");
+  const touched = useRef(0); // when the visitor first used the form, so instant bot posts can be told apart
   const send = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const form = e.currentTarget;
@@ -521,7 +528,7 @@ export function ContactFooter() {
     const res = await fetch("/api/contact", {
       method: "POST",
       headers: { "content-type": "application/json" },
-      body: JSON.stringify(Object.fromEntries(new FormData(form))),
+      body: JSON.stringify({ ...Object.fromEntries(new FormData(form)), elapsed: touched.current ? Date.now() - touched.current : 0 }),
     }).catch(() => null);
     if (res?.ok) form.reset();
     setStatus(res?.ok ? "sent" : "error");
@@ -564,7 +571,15 @@ export function ContactFooter() {
           </div>
         </div>
 
-        <form onSubmit={send} className="flex flex-col gap-3">
+        <form
+          onSubmit={send}
+          onFocus={() => {
+            touched.current ||= Date.now();
+          }}
+          className="flex flex-col gap-3"
+        >
+          {/* Honeypot: invisible to people, bots fill it in and are dropped by the API */}
+          <input name="website" type="text" tabIndex={-1} autoComplete="off" aria-hidden className="absolute -left-[9999px] h-0 w-0 opacity-0" />
           <input name="name" type="text" required placeholder="Your name" aria-label="Your name" className={field} />
           <input name="email" type="email" required placeholder="Your email" aria-label="Your email" className={field} />
           <textarea name="message" required rows={5} placeholder="Message" aria-label="Message" className={`${field} resize-none`} />
@@ -598,30 +613,25 @@ export function ContactFooter() {
 
 // "What I build": four areas, each with the projects that back it up, linking to /projects.
 export function WhatIBuild() {
-  const all = [...content.projects, ...content.more];
   return (
     <div>
-      <ul className="grid gap-x-10 gap-y-10 sm:grid-cols-2 lg:grid-cols-4">
-        {content.services.map((s) => {
-          const proof = all.filter((p) => p.category === s.category).map((p) => p.title);
-          return (
-            <li key={s.name} className="flex flex-col border-t border-rule pt-5">
-              <h4 className="text-lg">{s.name}</h4>
-              <p className="mt-2 text-[15px] leading-relaxed text-muted">{s.text}</p>
-              {proof.length > 0 && (
-                <p className="mt-4 font-mono text-xs leading-relaxed text-ink">{proof.join(" · ")}</p>
-              )}
-            </li>
-          );
-        })}
-      </ul>
+      <ol className="grid gap-x-10 gap-y-10 sm:grid-cols-2 lg:grid-cols-4">
+        {content.process.map((s, i) => (
+          <li key={s.name} className="flex flex-col border-t border-rule pt-5">
+            <span className="font-mono text-xs text-muted">0{i + 1}</span>
+            <h4 className="mt-1 text-lg">{s.name}</h4>
+            <p className="mt-2 text-[15px] leading-relaxed text-muted">{s.text}</p>
+            <p className="mt-4 font-mono text-xs leading-relaxed text-ink">{s.tools}</p>
+          </li>
+        ))}
+      </ol>
       <Link
-        href="/projects"
+        href="#contact"
         className="mt-8 inline-flex min-h-11 items-center text-sm text-muted transition-colors hover:text-ink"
       >
-        View all projects
+        Start the conversation
         <span aria-hidden className="ml-1">
-          →
+          ↗
         </span>
       </Link>
     </div>

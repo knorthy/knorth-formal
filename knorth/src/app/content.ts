@@ -47,7 +47,7 @@ export const content = {
       year: "",
       description:
         "A cross-platform React Native app where clinicians upload skin images and get AI-powered, real-time PASI severity scores with annotated lesion analysis. Role: full-stack developer and UI/UX designer.",
-      tools: "React Native, image recognition, AI scoring",
+      tools: "React Native, Expo, React, TypeScript, JavaScript, Node.js, npm, Python, AWS, TensorFlow, YOLOv8, Supabase, Git, GitHub, VS Code",
       href: "https://github.com/knorthy/PsoMetric",
     },
     {
@@ -58,7 +58,7 @@ export const content = {
       year: "",
       description:
         "A prototype all-in-one guide to Indang, Cavite: a fare calculator for local transport, emergency hotlines, a citizen's guide to government requirements, a local business directory and student housing support. Role: full-stack developer and UI/UX designer.",
-      tools: "Mobile app, digital governance",
+      tools: "React Native, Expo, React, TypeScript, JavaScript, Node.js, npm, Supabase, CORS, Git, GitHub, VS Code",
       href: "https://github.com/knorthy/OneIndang",
     },
     {
@@ -69,7 +69,7 @@ export const content = {
       year: "",
       description:
         "A two-player asymmetric co-op survival thriller on a volcanic island. One player explores blind while the other holds the map and the facts, so the only way out is talking. Role: lead project personnel, 3D game designer and developer.",
-      tools: "Godot 4, GDScript, 3D low-poly",
+      tools: "Godot 4, GDScript, Git, GitHub",
       href: "https://github.com/ArhonJay/TBLTBU",
     },
     {
@@ -80,7 +80,7 @@ export const content = {
       year: "",
       description:
         "An undergraduate thesis on a reinforcement learning agent that adapts power factor correction in a simulated industrial environment, cutting energy waste without fixed rules.",
-      tools: "Reinforcement learning, Python, simulation",
+      tools: "Reinforcement learning, Python, PyTorch, Gymnasium, NumPy, pandas, JavaScript, CSS, simulation, Git",
       href: "",
     },
     {
@@ -91,7 +91,7 @@ export const content = {
       year: "",
       description:
         "A PokemonGO-style AR platform where student organizations run events, scavenger hunts and campus-wide quests, and students earn points and badges. Role: project manager, full-stack developer and UI/UX designer.",
-      tools: "Augmented reality, Flutter, Firebase, Figma",
+      tools: "React Native, Expo, React, TypeScript, JavaScript, Node.js, npm, Figma, Git, GitHub",
       href: "https://github.com/knorthy/MetaCampus",
     },
   ],
@@ -123,44 +123,46 @@ export const content = {
   ],
   // Smaller builds: on the /projects page beside the deck's five, not on the homepage.
   more: [
-    { title: "Claro", image: "/projects/websites-claro-hero.webp", category: "Web", org: "Personal finance website built during my WhiteString internship", tools: "Laravel, React", description: "Built during my internship at WhiteString, where we were tasked to create a finance app. Laravel runs the backend and I built the React frontend. Add wallet balances and receipts, and it computes how much money you lose through purchases and what you save.", when: "", href: "https://github.com/knorthy/WhiteString-Expense-Tracker" },
-    { title: "Dash Car Rentals", image: "/projects/uiux-dash-car-rentals.webp", category: "Web", org: "Rental website for cars, yachts, motorcycles and other vehicles", description: "A website for renting a range of vehicles, including cars, yachts and motorcycles, with booking flows and real-time availability.", href: "https://github.com/knorthy/Dash-rentals", when: "" },
-    { title: "IoT Earthquake Detector", image: "/projects/iot-earthquake-detector.webp", category: "Embedded & IoT", org: "Seismic detection on an ESP32 with SMS alerts and remote monitoring", tools: "ESP32, ADXL345, SIM800L, Blynk", description: "A real-time earthquake monitor. An ADXL345 accelerometer feeds an ESP32 that shows live readings on a touchscreen, sounds a 220V alarm through a relay, sends SMS alerts over GSM and reports to the Blynk cloud.", href: "https://github.com/knorthy/earthquake_monitor", when: "" },
-    { title: "Misting Sanitation System", image: "/projects/iot-misting-sanitation.webp", category: "Embedded & IoT", org: "Arduino misting pipes with sensor-triggered activation and QR-based attendance", when: "" },
-    { title: "ESP32 APFC", image: "/projects/iot-esp32-apfc.webp", category: "Embedded & IoT", org: "Automatic power factor corrector on an ESP32 for homes", tools: "ESP32, IoT, power electronics", description: "An IoT-based embedded system that measures and corrects power factor automatically in residential properties, built as a diploma research project and evaluated by subject matter experts and forty users.", href: "https://github.com/knorthy/APFC-system", when: "" },
+    { title: "Claro", image: "/projects/websites-claro-hero.webp", category: "Web", org: "Personal finance website built during my WhiteString internship", tools: "Laravel, React, Vite, Zustand, JavaScript, CSS, MySQL, Docker, Git, GitHub, VS Code", description: "Built during my internship at WhiteString, where we were tasked to create a finance app. Laravel runs the backend and I built the React frontend. Add wallet balances and receipts, and it computes how much money you lose through purchases and what you save.", when: "", href: "https://github.com/knorthy/WhiteString-Expense-Tracker" },
+    { title: "Dash Car Rentals", image: "/projects/uiux-dash-car-rentals.webp", category: "Web", org: "Rental website for cars, yachts, motorcycles and other vehicles", description: "A website for renting a range of vehicles, including cars, yachts and motorcycles, with booking flows and real-time availability.", href: "https://github.com/knorthy/Dash-rentals", tools: "Python, JavaScript, CSS, Git, GitHub", when: "" },
+    { title: "IoT Earthquake Detector", image: "/projects/iot-earthquake-detector.webp", category: "Embedded & IoT", org: "Seismic detection on an ESP32 with SMS alerts and remote monitoring", tools: "ESP32, Arduino, C++, Blynk, Git, GitHub", description: "A real-time earthquake monitor. An ADXL345 accelerometer feeds an ESP32 that shows live readings on a touchscreen, sounds a 220V alarm through a relay, sends SMS alerts over GSM and reports to the Blynk cloud.", href: "https://github.com/knorthy/earthquake_monitor", when: "" },
+    { title: "Misting Sanitation System", image: "/projects/iot-misting-sanitation.webp", category: "Embedded & IoT", org: "Arduino misting pipes with sensor-triggered activation and QR-based attendance", tools: "Arduino", when: "" },
+    { title: "ESP32 APFC", image: "/projects/iot-esp32-apfc.webp", category: "Embedded & IoT", org: "Automatic power factor corrector on an ESP32 for homes", tools: "ESP32, Arduino, C++, Git, GitHub", description: "An IoT-based embedded system that measures and corrects power factor automatically in residential properties, built as a diploma research project and evaluated by subject matter experts and forty users.", href: "https://github.com/knorthy/APFC-system", when: "" },
     { title: "POS systems", category: "Web", org: "Point-of-sale systems with inventory and real-time sales reporting for small businesses", when: "" },
-    { title: "tilaOK", image: "/projects/ml-tilaok.webp", category: "Machine learning", org: "Audio AI that flags sick chickens from their sounds", tools: "Teachable Machine, audio classification", description: "An early-warning system for poultry farms. A single microphone listens to the flock and an audio model separates healthy sounds from coughing, snoring and rales, so disease is caught before it spreads.", href: "https://github.com/knorthy/tilaOK", when: "" },
-    { title: "CIRCU-360", image: "/projects/ml-circu-360.webp", category: "Machine learning", org: "A smart plastic recovery micro-plant for the circular economy", tools: "AI sorting, pyrolysis, traceability", description: "A case study for the International Student Essay Challenge: a containerized micro-plant that sorts plastic with AI, pyrolyses only HDPE, LDPE and PP, and tracks every output on a dashboard. Co-authored with UNWAHAS students.", href: "https://github.com/knorthy/CIRCU360-demo", when: "" },
-    { title: "SmartHerd", image: "/projects/mobile-smartherd.webp", category: "Mobile apps", org: "Goat weight estimation from two phone photos", tools: "YOLOv8, CNN keypoints, IoT", description: "A smartphone app that estimates a goat's live weight from a side and a top photo, with no scale or restraint. A backend finds body keypoints with YOLOv8 pose models and turns the measurements into a weight.", href: "https://github.com/knorthy/SmartHerd", when: "" },
+    { title: "tilaOK", image: "/projects/ml-tilaok.webp", category: "Machine learning", org: "Audio AI that flags sick chickens from their sounds", tools: "Next.js, React, TypeScript, Tailwind CSS, Python, TensorFlow, Vercel, Git, GitHub", description: "An early-warning system for poultry farms. A single microphone listens to the flock and an audio model separates healthy sounds from coughing, snoring and rales, so disease is caught before it spreads.", href: "https://github.com/knorthy/tilaOK", when: "" },
+    { title: "CIRCU-360", image: "/projects/ml-circu-360.webp", category: "Machine learning", org: "A smart plastic recovery micro-plant for the circular economy", tools: "Python, PyTorch, YOLO11, OpenCV, pandas, scikit-learn, Streamlit, Git, GitHub", description: "A case study for the International Student Essay Challenge: a containerized micro-plant that sorts plastic with AI, pyrolyses only HDPE, LDPE and PP, and tracks every output on a dashboard. Co-authored with UNWAHAS students.", href: "https://github.com/knorthy/CIRCU360-demo", when: "" },
+    { title: "SmartHerd", image: "/projects/mobile-smartherd.webp", category: "Mobile apps", org: "Goat weight estimation from two phone photos", tools: "React Native, Expo, React, TypeScript, JavaScript, Node.js, npm, YOLOv8, Git, GitHub, VS Code", description: "A smartphone app that estimates a goat's live weight from a side and a top photo, with no scale or restraint. A backend finds body keypoints with YOLOv8 pose models and turns the measurements into a weight.", href: "https://github.com/knorthy/SmartHerd", when: "" },
     { title: "Juno", category: "Mobile apps", org: "Mobile assistant app", when: "" },
-    { title: "HomeVision", image: "/projects/mobile-homevision.webp", category: "Mobile apps", org: "AI room redesign that links to financeable products", tools: "Generative AI, mobile app", description: "Champion of the Home Credit AI in UX hackathon. Snap a photo of your room, let generative AI redesign it, then see the furniture tagged with real products and monthly payments, with budget-friendly alternatives suggested.", href: "https://github.com/knorthy/HomeVision", when: "" },
-    { title: "QCSP Competition", image: "/projects/websites-qcsp.webp", category: "Web", org: "Competition landing page for the official QCSP 2026 website", tools: "Next.js, React, Tailwind CSS", description: "Volunteer developer for Quantum Computing Society Philippines. Assigned to design and develop the competition landing page for the official QCSP 2026 website.", href: "https://github.com/knorthy/QCSP-Compe", when: "" },
-    { title: "Personal websites", image: "/projects/websites-personal.webp", category: "Web", org: "Personal websites I designed and built", when: "" },
+    { title: "HomeVision", image: "/projects/mobile-homevision.webp", category: "Mobile apps", org: "AI room redesign that links to financeable products", tools: "React Native, Expo, React, TypeScript, JavaScript, Node.js, npm, Python, FastAPI, Google Gemini, Git, GitHub, VS Code", description: "Champion of the Home Credit AI in UX hackathon. Snap a photo of your room, let generative AI redesign it, then see the furniture tagged with real products and monthly payments, with budget-friendly alternatives suggested.", href: "https://github.com/knorthy/HomeVision", when: "" },
+    { title: "QCSP Competition", image: "/projects/websites-qcsp.webp", category: "Web", org: "Competition landing page for the official QCSP 2026 website", tools: "React, TypeScript, CSS, Git, GitHub", description: "Volunteer developer for Quantum Computing Society Philippines. Assigned to design and develop the competition landing page for the official QCSP 2026 website.", href: "https://github.com/knorthy/QCSP-Compe", when: "" },
+    { title: "Personal websites", image: "/projects/websites-personal.webp", category: "Web", org: "Personal websites I designed and built", tools: "Next.js, React, Tailwind CSS, TypeScript", when: "" },
   ],
-  // "What I build" on the homepage: each area lists the projects (by `category`) that show it.
-  services: [
-    { name: "Web apps", category: "Web", text: "Responsive sites and web apps in Next.js and React, from landing pages to point-of-sale systems with live sales reporting." },
-    { name: "Mobile apps", category: "Mobile apps", text: "Cross-platform apps, from a React Native clinical imaging tool to the official app of the Municipality of Indang." },
-    { name: "UI/UX design", category: "UI/UX design", text: "Flows and interfaces designed in Figma by the same person who builds them. Champion of the AI in UX for FinTech Hackathon." },
-    { name: "Embedded & IoT", category: "Embedded & IoT", text: "ESP32 and Arduino builds with sensors, alerts and cloud logging." },
+  // "What I can offer" on the homepage: four steps, each with a short description and its tools.
+  process: [
+    { name: "Plan", text: "We talk through the idea, who it is for and what to build first.", tools: "Requirements · User flows" },
+    { name: "Design", text: "I sketch and design the screens in Figma so you can give feedback before any code.", tools: "Figma · Prototyping" },
+    { name: "Develop", text: "I build the web app or mobile app, and the hardware or AI part if the project needs it.", tools: "React · Next.js · React Native · Python · ESP32" },
+    { name: "Deploy", text: "I test it, put it online and hand over the code with notes on how it works.", tools: "Vercel · AWS · GitHub" },
   ],
   skills: [
-    { group: "Frontend", items: "Next.js, React, Tailwind CSS, JavaScript, TypeScript, CSS" },
-    { group: "Backend", items: "Node.js, Python, C++, Laravel, MySQL, Firebase, Supabase, Spring Boot" },
-    { group: "Mobile and embedded", items: "FlutterFlow, Arduino, ESP32" },
-    { group: "AI and cloud", items: "TensorFlow, Gymnasium, AWS, Vercel" },
+    { group: "Frontend", items: "Next.js, React, Vite, Zustand, Tailwind CSS, JavaScript, TypeScript, CSS" },
+    { group: "Backend", items: "Node.js, Python, C++, Laravel, MySQL, Firebase, Supabase, FastAPI, CORS" },
+    { group: "Mobile and embedded", items: "React Native, Expo, FlutterFlow, Arduino, ESP32" },
+    { group: "Game development", items: "Godot 4, GDScript" },
+    { group: "AI and cloud", items: "TensorFlow, PyTorch, Gymnasium, YOLOv8, YOLO11, Google Gemini, AWS, Vercel" },
+    { group: "Data and ML", items: "NumPy, pandas, scikit-learn, OpenCV, Streamlit" },
     { group: "Design and media", items: "Figma, Photoshop, Canva, CapCut, Premiere Pro, Illustrator, After Effects, DaVinci Resolve, Picsart" },
-    { group: "Tools", items: "Git, GitHub, VS Code" },
+    { group: "Tools", items: "Git, GitHub, npm, Docker, VS Code" },
   ],
   // The skills terminal's detail panel. DRAFT: `level` (0–100) and `note` are first guesses from the
   // projects and roles on this page, written for Tiffany to correct before publishing. Linked work is
   // found automatically from each project's `tools` and each role's `skills`.
   skillDetails: {
-    "Next.js": { level: 80, note: "Builds her personal and portfolio sites, including Claro's landing page." },
-    React: { level: 82, note: "Built Claro, the team's expense tracker at whiteStrings." },
+    "Next.js": { level: 80, note: "Builds her portfolio site and the tilaOK website." },
+    React: { level: 82, note: "Web and mobile interfaces, from Claro to PsoMetric and One Indang." },
     "Tailwind CSS": { level: 80, note: "Styles her React and Next.js sites." },
     JavaScript: { level: 80, note: "The base of her web work, from sites to small tools." },
-    TypeScript: { level: 72, note: "Typed React and Next.js code, including Claro at whiteStrings." },
+    TypeScript: { level: 72, note: "Typed React, React Native and Next.js code, from PsoMetric to QCSP." },
     CSS: { level: 82, note: "Responsive layouts and the finishing details on her websites." },
     "Node.js": { level: 65, note: "Server-side JavaScript behind her web projects." },
     Python: { level: 62, note: "Machine learning work, like the reinforcement learning power factor corrector." },
@@ -169,7 +171,6 @@ export const content = {
     MySQL: { level: 62, note: "Trained in SQL at whiteStrings; databases for her web apps." },
     Firebase: { level: 65, note: "Backend and data for her app projects." },
     Supabase: { level: 60, note: "Postgres backend for her web projects." },
-    "Spring Boot": { level: 45, note: "Java backend framework she has built with." },
     FlutterFlow: { level: 60, note: "Cross-platform mobile app builds." },
     Arduino: { level: 75, note: "Runs the misting sanitation system and other hardware builds." },
     ESP32: { level: 75, note: "Runs the IoT earthquake detector and the power factor corrector." },
@@ -188,7 +189,26 @@ export const content = {
     Picsart: { level: 70, note: "Quick photo edits for social content." },
     Git: { level: 78, note: "Version control on every project." },
     GitHub: { level: 80, note: "Hosts her repositories, from PsoMetric to Claro." },
+    "React Native": { level: 78, note: "Cross-platform apps for PsoMetric, One Indang, MetaCampus, SmartHerd and HomeVision." },
+    Expo: { level: 75, note: "Builds and runs all of her React Native mobile apps." },
+    npm: { level: 75, note: "Package manager behind her React, Next.js, React Native and Node.js projects." },
+    CORS: { level: 60, note: "Cross-origin setup between the One Indang app and its backend." },
+    FastAPI: { level: 55, note: "Python API behind HomeVision." },
+    "Godot 4": { level: 60, note: "Engine for The Blind Leading the Blown Up." },
+    GDScript: { level: 60, note: "Game logic for The Blind Leading the Blown Up." },
+    YOLOv8: { level: 55, note: "Pose and keypoint models for SmartHerd's goat weight estimates and PsoMetric's lesion analysis." },
+    Vite: { level: 65, note: "Build tool for Claro and the QCSP competition page." },
+    Zustand: { level: 55, note: "State management in the Claro expense tracker." },
     "VS Code": { level: 85, note: "Her everyday editor." },
+    PyTorch: { level: 55, note: "Deep learning backend for the APFC controller and CIRCU-360's classifier." },
+    YOLO11: { level: 55, note: "Plastic-sorting classifier in CIRCU-360." },
+    "Google Gemini": { level: 55, note: "Generative AI behind HomeVision's room redesigns." },
+    NumPy: { level: 62, note: "Array work in her Python and machine learning projects." },
+    pandas: { level: 62, note: "Data handling and train/test splits for the APFC thesis." },
+    "scikit-learn": { level: 50, note: "Model evaluation for CIRCU-360." },
+    OpenCV: { level: 55, note: "Belt-timing simulation in CIRCU-360." },
+    Streamlit: { level: 60, note: "Monitoring dashboard for CIRCU-360." },
+    Docker: { level: 45, note: "Laravel Sail development environment for Claro." },
   } as Record<string, { level: number; note: string }>,
   // Shown as two text-only columns. `org` is the small uppercase line, `sub` the grey line under the title.
   experience: [
@@ -209,7 +229,7 @@ export const content = {
           title: "Developer Intern",
           when: "Jul — Aug 2026 · Remote",
           text: "Trained in Laravel and SQL, then built Claro, the team's expense tracker, in React and TypeScript.",
-          skills: "React Native, TypeScript",
+          skills: "Laravel, MySQL, React, TypeScript",
         },
         {
           title: "QA Analyst Intern",
@@ -220,7 +240,7 @@ export const content = {
       ],
     },
     { title: "Full-Stack Developer", org: "Freelance", sub: "Web, mobile and embedded systems", when: "Jan 2023 — Present" },
-    { title: "Graphic Artist", org: "Freelance", sub: "Publications, video, photography, animation, digital ads", when: "Jan 2022 — 2024" },
+    { title: "Graphic Artist", org: "Freelance", sub: "Publications, video, photography, animation, digital ads", when: "Jan 2022 — 2024", skills: "Photoshop, Illustrator, Canva, Picsart, CapCut, Premiere Pro, After Effects, DaVinci Resolve" },
   ],
   leadership: [
     { title: "Marketing Committee", org: "AWS Student Builders Group, Spade", when: "Jun 2026 — Present" },

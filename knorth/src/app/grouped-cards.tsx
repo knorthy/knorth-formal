@@ -58,7 +58,7 @@ function CardLink({ item }: { item: CardItem }) {
     >
       <span className="link">{link.label}</span>
       <span aria-hidden className="ml-1">
-        →
+        ↗
       </span>
     </button>
   );

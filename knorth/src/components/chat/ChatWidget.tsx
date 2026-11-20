@@ -4,10 +4,11 @@
 // overlay modelled on bryllim.com: the page blurs out, a big pixel-font prompt asks for a question,
 // and the reply comes back one line at a time in the same spot: "thinking...", then Gemini's answer
 // from /api/chat streams in. Esc or a click outside closes.
-import { useCallback, useEffect, useRef, useState } from "react";
+import { Fragment, useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { useReducedMotion } from "@/components/useReducedMotionSafe";
 import LatticeLoader from "@/components/LatticeLoader";
+import GlideSelect from "@/components/GlideSelect";
 import KnoPaw, { type KnoMood } from "./KnoPaw";
 import BranchedMenu, { type BranchedMenuItem } from "@/components/BranchedMenu";
 import { content } from "@/app/content";
@@ -43,15 +44,60 @@ const MENU: BranchedMenuItem[] = [
 ];
 const FLIP_MS = 820;
 
+// How Kniah talks. The server only accepts these three values (see TONES in api/chat/route.ts).
+const TONES = [
+  { value: "casual", label: "Casual", tag: "Default" },
+  { value: "formal", label: "Formal", tag: "Hiring" },
+  { value: "funny", label: "Funny", tag: "Playful" },
+];
+
+// Follow-up questions offered under each answer. Ones the visitor already asked drop out, so the
+// chips move on as the chat goes.
+const SUGGESTIONS = [
+  "What has she built with React Native?",
+  "Which projects use machine learning?",
+  "What is her work experience?",
+  "Which awards has she won?",
+  "What tools does she use for design?",
+  "Tell me about her IoT projects",
+  "Is she open to jobs?",
+  "What is she studying?",
+  ...content.projects.map((p) => `Tell me about ${p.title}`),
+];
+const norm = (t: string) => t.toLowerCase().replace(/[^a-z0-9 ]/g, "").replace(/\s+/g, " ").trim();
+// Something a visitor says about their own goal ("we're hiring a frontend dev"): kept for the whole chat
+const GOAL = /\b(hiring|looking for|recruit\w*|we need|our team|my company|my team|position|role)\b/i;
+
+// Only links that already exist on the site become clickable, so an answer can't smuggle in another URL.
+const KNOWN_URLS = new Set(
+  [...content.links, ...content.projects, ...content.more, ...content.credentials, ...content.experience]
+    .map((x) => ("href" in x ? x.href : ""))
+    .filter(Boolean),
+);
+function linkify(text: string): ReactNode {
+  return text.split(/(https?:\/\/\S+)/g).map((part, i) => {
+    const url = part.replace(/[.,;:!?)]+$/, "");
+    if (i % 2 === 0 || !KNOWN_URLS.has(url)) return <Fragment key={i}>{part}</Fragment>;
+    return (
+      <Fragment key={i}>
+        <a href={url} target="_blank" rel="noopener noreferrer" className="link">
+          {url.replace(/^https?:\/\/(www\.)?/, "")} ↗
+        </a>
+        {part.slice(url.length)}
+      </Fragment>
+    );
+  });
+}
+
 // Starts the request right away so the answer streams in while the readout plays.
-function startAnswer(messages: Msg[], signal: AbortSignal) {
+function startAnswer(messages: Msg[], signal: AbortSignal, tone: string, notes: string[]) {
   const state = { text: "", done: false, error: null as string | null, onChange: () => {} };
   (async () => {
     try {
       const res = await fetch("/api/chat", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ messages }),
+        body: JSON.stringify({ messages, tone, notes }),
         signal,
       });
       if (!res.ok || !res.body) {
@@ -94,8 +140,11 @@ export default function ChatWidget() {
   const [title, setTitle] = useState<Title>({ key: 0, text: DEFAULT_TITLE, small: false, loading: false });
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState(false);
+  const [tone, setTone] = useState<string | null>(null); // null until the visitor picks one: Kniah then talks casually
 
+  const [asked, setAsked] = useState<string[]>([]); // normalised questions so far, for the follow-up chips
   const history = useRef<Msg[]>([]);
+  const notes = useRef<string[]>([]); // what the visitor said about their goal, sent with every question
   const run = useRef(0); // bumped on close, so a running sequence knows to stop
   const abort = useRef<AbortController | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -165,9 +214,11 @@ export default function ChatWidget() {
     setError(false);
     setInput("");
     setBubble(question);
+    setAsked((a) => [...a, norm(question)]);
+    if (GOAL.test(question) && notes.current.length < 3) notes.current.push(question.slice(0, 200));
     history.current = [...history.current, { role: "user" as const, content: question }].slice(-12);
     abort.current = new AbortController();
-    const answer = startAnswer(history.current, abort.current.signal);
+    const answer = startAnswer(history.current, abort.current.signal, tone ?? "casual", notes.current);
 
     show("thinking...", true);
     // The answer: stream into one title so it doesn't re-animate on every chunk
@@ -207,6 +258,22 @@ export default function ChatWidget() {
     window.addEventListener("kniah:ask", onAsk);
     return () => window.removeEventListener("kniah:ask", onAsk);
   }, [openAsk]);
+
+  // Clears the conversation: Kniah forgets it, and the chips start over
+  const startOver = () => {
+    run.current++;
+    abort.current?.abort();
+    history.current = [];
+    notes.current = [];
+    setAsked([]);
+    setInput("");
+    setBubble(null);
+    setBusy(false);
+    setError(false);
+    setTitle((t) => ({ key: t.key + 1, text: DEFAULT_TITLE, small: false, loading: false }));
+    requestAnimationFrame(() => inputRef.current?.focus());
+  };
+  const suggestions = SUGGESTIONS.filter((q) => !asked.includes(norm(q))).slice(0, 3);
 
   const toggle = () => {
     if (open) { close(); return; }
@@ -325,7 +392,7 @@ export default function ChatWidget() {
                     {title.loading ? (
                       <LatticeLoader label="thinking" pattern="spiral" cellSize={8} gap={3} fontSize={24} showTimer={false} color="var(--color-muted)" />
                     ) : (
-                      title.text
+                      linkify(title.text)
                     )}
                   </motion.h2>
                 </AnimatePresence>
@@ -335,6 +402,24 @@ export default function ChatWidget() {
                 <a href="#contact" onClick={close} className="link text-sm">
                   Go to contact
                 </a>
+              )}
+
+              {!busy && !error && suggestions.length > 0 && (
+                <div className="flex flex-wrap gap-2" role="group" aria-label="Suggested questions">
+                  {suggestions.map((q) => (
+                    <button
+                      key={q}
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        ask(q);
+                      }}
+                      className="min-h-9 cursor-pointer rounded-full border border-rule px-3.5 text-sm text-muted transition-colors hover:border-ink hover:text-ink"
+                    >
+                      {q}
+                    </button>
+                  ))}
+                </div>
               )}
 
               {!busy ? (
@@ -362,7 +447,33 @@ export default function ChatWidget() {
                 }}
               />
             </motion.div>
-            <p className="absolute bottom-4 left-6 right-24 z-[1] text-sm text-muted">
+            <div className="absolute right-6 bottom-4 z-[2] flex items-center gap-2">
+              {bubble !== null && (
+                <button
+                  type="button"
+                  onClick={startOver}
+                  className="min-h-8 cursor-pointer rounded-md px-2.5 text-xs text-muted transition-colors hover:text-ink"
+                >
+                  Start over
+                </button>
+              )}
+              <GlideSelect
+                options={TONES}
+                value={tone ?? ""}
+                placeholder="Model personality"
+                onChange={setTone}
+                ariaLabel="Model personality: change the tone of the replies"
+                surfaceColor="var(--color-paper)"
+                highlightColor="var(--color-rule)"
+                textColor="var(--color-ink)"
+                accentColor="var(--color-ink)"
+                size="sm"
+                menuWidth={170}
+                placement="top"
+                align="right"
+              />
+            </div>
+            <p className="absolute bottom-4 left-6 right-80 z-[1] text-sm text-muted">
               AI answers by Google Gemini from Tiffany&apos;s portfolio. They can be wrong, so skip anything private.
             </p>
           </motion.div>

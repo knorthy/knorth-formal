@@ -91,10 +91,13 @@ function linkedWork(skill: string) {
   const has = (list: string | undefined) =>
     (list ?? "").split(",").some((t) => t.trim().toLowerCase() === skill.toLowerCase());
   const work: { name: string; href?: string }[] = [];
-  for (const p of content.projects) if (has(p.tools)) work.push({ name: p.title, href: p.href || undefined });
-  for (const e of content.experience)
+  for (const p of [...content.projects, ...content.more])
+    if ("tools" in p && has(p.tools)) work.push({ name: p.title, href: ("href" in p && p.href) || undefined });
+  for (const e of content.experience) {
+    if ("skills" in e && has(e.skills)) work.push({ name: `${e.title}, ${e.org}` });
     for (const r of ("roles" in e ? e.roles : []) ?? [])
       if (has(r.skills)) work.push({ name: `${r.title}, ${e.org}` });
+  }
   return work;
 }
 
@@ -358,8 +361,10 @@ export default function SkillTerminal() {
       <aside
         aria-live="polite"
         aria-label="Skill detail"
-        className="border-t border-rule px-5 py-5 md:border-t-0 md:border-l"
+        className="border-t border-rule md:relative md:border-t-0 md:border-l"
       >
+        {/* On md+ this panel is taken out of the row's height, so a long linked-work list scrolls inside it instead of stretching the box. */}
+        <div className="flex flex-col px-5 py-5 md:absolute md:inset-0">
         <p className="font-mono text-[11px] tracking-[0.08em] text-muted uppercase">Skill detail</p>
         {!skill ? (
           <p className="mt-3 text-sm leading-relaxed text-muted">
@@ -386,7 +391,7 @@ export default function SkillTerminal() {
           Linked work · {work.length}
         </p>
         {work.length ? (
-          <ul className="mt-2">
+          <ul className="mt-2 max-h-64 min-h-0 flex-1 overflow-y-auto [scrollbar-width:none] md:max-h-none [&::-webkit-scrollbar]:hidden">
             {work.map((w) => (
               <li key={w.name} className="flex items-baseline justify-between gap-3 border-b border-rule py-2.5 last:border-b-0">
                 <span className="text-sm">{w.name}</span>
@@ -408,6 +413,7 @@ export default function SkillTerminal() {
         )}
           </>
         )}
+        </div>
       </aside>
     </div>
   );
