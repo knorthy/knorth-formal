@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist_Mono, Geist_Pixel } from "next/font/google";
 import { content } from "./content";
+import MobileNotice from "./mobile-notice";
 import "./globals.css";
 
 // The chatbot's pairing, site-wide: Geist Pixel for headings, Geist Mono for everything else.
@@ -27,6 +28,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
           }}
         />
         {children}
+        <MobileNotice />
       </body>
     </html>
   );

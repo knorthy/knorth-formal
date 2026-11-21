@@ -144,3 +144,13 @@ summary::-webkit-details-marker {
 
 *::-webkit-scrollbar { display: none; }
 * { scrollbar-width: none; }
+
+/* Theme switch: the browser cross-fades the page by default; ThemeToggle animates a circular wipe instead. */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+::view-transition-new(root) {
+  z-index: 1;
+}

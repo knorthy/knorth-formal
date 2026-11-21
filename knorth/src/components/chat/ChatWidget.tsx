@@ -4,7 +4,7 @@
 // overlay modelled on bryllim.com: the page blurs out, a big pixel-font prompt asks for a question,
 // and the reply comes back one line at a time in the same spot: "thinking...", then Gemini's answer
 // from /api/chat streams in. Esc or a click outside closes.
-import { Fragment, useCallback, useEffect, useRef, useState, type ReactNode } from "react";
+import { Fragment, useCallback, useEffect, useRef, useState, useSyncExternalStore, type ReactNode } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { useReducedMotion } from "@/components/useReducedMotionSafe";
 import LatticeLoader from "@/components/LatticeLoader";
@@ -51,21 +51,17 @@ const TONES = [
   { value: "funny", label: "Funny", tag: "Playful" },
 ];
 
-// Follow-up questions offered under each answer. Ones the visitor already asked drop out, so the
-// chips move on as the chat goes.
-const SUGGESTIONS = [
-  "What has she built with React Native?",
-  "Which projects use machine learning?",
-  "What is her work experience?",
-  "Which awards has she won?",
-  "What tools does she use for design?",
-  "Tell me about her IoT projects",
-  "Is she open to jobs?",
-  "What is she studying?",
-  ...content.projects.map((p) => `Tell me about ${p.title}`),
-];
-const norm = (t: string) => t.toLowerCase().replace(/[^a-z0-9 ]/g, "").replace(/\s+/g, " ").trim();
 // Something a visitor says about their own goal ("we're hiring a frontend dev"): kept for the whole chat
+// The browser's default voice is the robotic one. Prefer a natural female English voice when the device has one
+// (Edge's "Natural" voices, Chrome's Google voices, Apple's Samantha), else any English voice.
+const VOICE_PREFS = [/natural/i, /aria|jenny|sonia|libby|michelle/i, /google.*(us|uk) english/i, /samantha|karen|serena|zira/i];
+function sayAloud(text: string) {
+  const synth = window.speechSynthesis;
+  const u = new SpeechSynthesisUtterance(text);
+  const english = synth.getVoices().filter((v) => v.lang.startsWith("en"));
+  u.voice = VOICE_PREFS.map((re) => english.find((v) => re.test(v.name))).find(Boolean) ?? english[0] ?? null;
+  synth.speak(u);
+}
 const GOAL = /\b(hiring|looking for|recruit\w*|we need|our team|my company|my team|position|role)\b/i;
 
 // Only links that already exist on the site become clickable, so an answer can't smuggle in another URL.
@@ -142,12 +138,26 @@ export default function ChatWidget() {
   const [error, setError] = useState(false);
   const [tone, setTone] = useState<string | null>(null); // null until the visitor picks one: Kniah then talks casually
 
-  const [asked, setAsked] = useState<string[]>([]); // normalised questions so far, for the follow-up chips
   const history = useRef<Msg[]>([]);
   const notes = useRef<string[]>([]); // what the visitor said about their goal, sent with every question
   const run = useRef(0); // bumped on close, so a running sequence knows to stop
   const abort = useRef<AbortController | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  // Voice: the browser's own speech recognition (mic) and speech synthesis (read replies aloud), no API.
+  // shortcut: recognition is Chrome/Edge/Safari only, so the mic button hides elsewhere; upgrade to a hosted voice API if the quality matters.
+  // false on the server and on first paint, so the buttons appear after hydration without a mismatch
+  const noSub = () => () => {};
+  const canListen = useSyncExternalStore(noSub, () => "SpeechRecognition" in window || "webkitSpeechRecognition" in window, () => false);
+  const canSpeak = useSyncExternalStore(noSub, () => "speechSynthesis" in window, () => false);
+  const [listening, setListening] = useState(false);
+  const [speak, setSpeak] = useState(false);
+  const speakRef = useRef(false);
+  const recog = useRef<{ stop: () => void; abort: () => void } | null>(null);
+  const stopVoice = useCallback(() => {
+    recog.current?.abort();
+    setListening(false);
+    window.speechSynthesis?.cancel();
+  }, []);
   const launcherRef = useRef<HTMLButtonElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
 
@@ -156,9 +166,10 @@ export default function ChatWidget() {
   const close = useCallback(() => {
     run.current++;
     abort.current?.abort();
+    stopVoice();
     setOpen(false);
     requestAnimationFrame(() => launcherRef.current?.focus());
-  }, []);
+  }, [stopVoice]);
 
   const openAsk = useCallback(() => {
     run.current++;
@@ -206,15 +217,61 @@ export default function ChatWidget() {
     return () => clearTimeout(t);
   }, [open]);
 
+  useEffect(() => {
+    speakRef.current = speak;
+    if (!speak) window.speechSynthesis?.cancel();
+  }, [speak]);
+
+  // Mic button: speech fills the input as it goes, and the question is sent when the visitor stops talking
+  const listen = () => {
+    if (listening) return stopVoice();
+    if (busy) return;
+    window.speechSynthesis?.cancel();
+    type Rec = { interimResults: boolean; lang: string; start: () => void; stop: () => void; abort: () => void; onresult: unknown; onerror: unknown; onend: unknown };
+    const w = window as unknown as { SpeechRecognition?: new () => Rec; webkitSpeechRecognition?: new () => Rec };
+    const Rec = w.SpeechRecognition ?? w.webkitSpeechRecognition;
+    if (!Rec) return;
+    const r = new Rec();
+    r.interimResults = true;
+    r.lang = navigator.language || "en-US";
+    let heard = "";
+    r.onresult = (e: { results: ArrayLike<ArrayLike<{ transcript: string }>> }) => {
+      heard = Array.from(e.results, (x) => x[0].transcript).join("");
+      setInput(heard.slice(0, 600));
+    };
+    r.onerror = (e: { error?: string }) => {
+      setListening(false);
+      if (e.error === "aborted" || e.error === "no-speech") return;
+      show(
+        e.error === "not-allowed" || e.error === "service-not-allowed"
+          ? "The microphone is blocked. Allow it in the browser's address bar, then try again."
+          : e.error === "network"
+            ? "Voice typing couldn't reach the browser's speech service. Check your connection, or try Chrome or Edge."
+            : `The microphone didn't work (${e.error ?? "unknown error"}).`,
+      );
+    };
+    r.onend = () => {
+      setListening(false);
+      if (recog.current !== r || !heard.trim()) return;
+      recog.current = null;
+      speakRef.current = true; // asked by voice, so the answer is read aloud unless turned off
+      setSpeak(true);
+      askRef.current(heard);
+    };
+    recog.current = r;
+    setListening(true);
+    r.start();
+  };
+
   const ask = async (text: string) => {
     const question = text.trim();
     if (!question || busy) return;
     const id = run.current;
+    stopVoice();
     setBusy(true);
     setError(false);
     setInput("");
     setBubble(question);
-    setAsked((a) => [...a, norm(question)]);
     if (GOAL.test(question) && notes.current.length < 3) notes.current.push(question.slice(0, 200));
     history.current = [...history.current, { role: "user" as const, content: question }].slice(-12);
     abort.current = new AbortController();
@@ -234,7 +291,10 @@ export default function ChatWidget() {
         setTitle({ key, text: "thinking...", small: true, loading: true });
       }
       if (answer.done && run.current === id) {
-        if (answer.text && !answer.error) history.current.push({ role: "assistant", content: answer.text });
+        if (answer.text && !answer.error) {
+          history.current.push({ role: "assistant", content: answer.text });
+          if (speakRef.current) sayAloud(answer.text);
+        }
         setBusy(false);
         requestAnimationFrame(() => inputRef.current?.focus());
       }
@@ -263,9 +323,9 @@ export default function ChatWidget() {
   const startOver = () => {
     run.current++;
     abort.current?.abort();
+    stopVoice();
     history.current = [];
     notes.current = [];
-    setAsked([]);
     setInput("");
     setBubble(null);
     setBusy(false);
@@ -273,7 +333,6 @@ export default function ChatWidget() {
     setTitle((t) => ({ key: t.key + 1, text: DEFAULT_TITLE, small: false, loading: false }));
     requestAnimationFrame(() => inputRef.current?.focus());
   };
-  const suggestions = SUGGESTIONS.filter((q) => !asked.includes(norm(q))).slice(0, 3);
 
   const toggle = () => {
     if (open) { close(); return; }
@@ -404,24 +463,6 @@ export default function ChatWidget() {
                 </a>
               )}
 
-              {!busy && !error && suggestions.length > 0 && (
-                <div className="flex flex-wrap gap-2" role="group" aria-label="Suggested questions">
-                  {suggestions.map((q) => (
-                    <button
-                      key={q}
-                      type="button"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        ask(q);
-                      }}
-                      className="min-h-9 cursor-pointer rounded-full border border-rule px-3.5 text-sm text-muted transition-colors hover:border-ink hover:text-ink"
-                    >
-                      {q}
-                    </button>
-                  ))}
-                </div>
-              )}
-
               {!busy ? (
                 <div className="ask-field" aria-hidden>
                   <span>{input}</span>
@@ -455,6 +496,28 @@ export default function ChatWidget() {
                   className="min-h-8 cursor-pointer rounded-md px-2.5 text-xs text-muted transition-colors hover:text-ink"
                 >
                   Start over
+                </button>
+              )}
+              {canListen && (
+                <button
+                  type="button"
+                  onClick={listen}
+                  aria-pressed={listening}
+                  aria-label={listening ? "Stop listening" : "Ask with your voice"}
+                  className={`min-h-8 cursor-pointer rounded-md px-2.5 text-xs transition-colors hover:text-ink ${listening ? "text-ink" : "text-muted"}`}
+                >
+                  {listening ? "Listening..." : "Mic"}
+                </button>
+              )}
+              {canSpeak && (
+                <button
+                  type="button"
+                  onClick={() => setSpeak((v) => !v)}
+                  aria-pressed={speak}
+                  aria-label="Read replies aloud"
+                  className={`min-h-8 cursor-pointer rounded-md px-2.5 text-xs transition-colors hover:text-ink ${speak ? "text-ink" : "text-muted"}`}
+                >
+                  {speak ? "Voice on" : "Voice off"}
                 </button>
               )}
               <GlideSelect

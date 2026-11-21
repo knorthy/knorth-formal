@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import FlexCarousel from "@/components/FlexCarousel";
-import Masonry from "@/components/Masonry";
+import GraphicsMasonry from "./graphics-masonry";
 import { content } from "../../content";
 import PageShell from "../../page-shell";
 
@@ -39,12 +39,12 @@ export default function GraphicsPage() {
         <source src={src} />
       </video>
 
-      <div className="relative mt-16 h-[560px] w-full">
+      <div className="relative mt-12 h-[400px] w-full md:mt-16 md:h-[560px]">
         <FlexCarousel items={slides} preset="liquid" intro="rise" cardHeight={0.5} gap={12} squeeze={0.2} focusOnClick captions />
       </div>
 
       <div className="mt-16">
-        <Masonry items={items} columnWidth={240} gap={12} radius={12} animateFrom="bottom" hoverEffect="zoom" captions="hover" lightbox draggable />
+        <GraphicsMasonry items={items} />
       </div>
     </PageShell>
   );
