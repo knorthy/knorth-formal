@@ -35,7 +35,7 @@ export default function PageShell(props: {
         <Link href="/" aria-label={`${content.name}, home`} className={`${tap} font-semibold tracking-[-0.02em]`}>
           {initials}
         </Link>
-        <nav aria-label="Pages" className="order-last flex w-full flex-wrap gap-x-5 text-sm text-muted md:order-none md:w-auto md:gap-x-6">
+        <nav aria-label="Pages" className="order-last flex w-full flex-wrap gap-x-4 text-[13px] text-muted sm:gap-x-5 sm:text-sm md:order-none md:w-auto md:gap-x-6">
           {PAGES.map((p) =>
             p.href === props.current ? (
               <Link key={p.href} href={p.href} aria-current="page" className={`${tap} text-ink`}>

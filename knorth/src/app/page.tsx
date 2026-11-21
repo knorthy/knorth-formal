@@ -79,7 +79,7 @@ export default function Home() {
         </a>
         <nav
           aria-label="Sections"
-          className="order-last grid w-full grid-cols-3 gap-x-6 text-sm text-muted md:order-none md:flex md:w-auto"
+          className="order-last flex w-full justify-between gap-x-4 text-sm text-muted md:order-none md:ml-8 md:mr-auto md:w-auto md:justify-start md:gap-x-6 lg:m-0"
         >
           {sections.map((s) => (
             <a
