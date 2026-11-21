@@ -3,7 +3,7 @@
 // The interactive pieces of the page. Each wraps one reusable component from
 // src/components and feeds it the portfolio's content in the page's ink and paper.
 import dynamic from "next/dynamic";
-import { useEffect, useRef, useState, useSyncExternalStore, type ReactNode } from "react";
+import { useEffect, useRef, useState, useSyncExternalStore, type MouseEvent, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 import DriftWall from "@/components/DriftWall";
 import PointerLabel, { usePointerLabel } from "@/components/PointerLabel";
@@ -20,7 +20,7 @@ import {
 } from "react-icons/si";
 import {
   TbArrowsExchange, TbBrandReactNative, TbBrain, TbStack2, TbBrandAdobeAfterEffect, TbBrandAdobeIllustrator, TbBrandAdobePhotoshop,
-  TbBrandAdobePremiere, TbBrandAws, TbBrandVscode, TbBrush, TbSchool, TbScissors, TbTrophy,
+  TbBrandAdobePremiere, TbBrandAws, TbBrandVscode, TbBrush, TbMoon, TbSchool, TbScissors, TbSun, TbTrophy,
 } from "react-icons/tb";
 import { content } from "./content";
 import DecryptedText from "@/components/DecryptedText";
@@ -45,21 +45,37 @@ const useTheme = () => useSyncExternalStore(watchTheme, readTheme, () => "light"
 
 // Both labels render and CSS shows one, so the right word is there before hydration.
 export function ThemeToggle({ className }: { className?: string }) {
-  const flip = () => {
-    const next = readTheme() === "dark" ? "light" : "dark";
-    document.documentElement.dataset.theme = next;
-    try {
-      localStorage.setItem("theme", next);
-    } catch {}
+  // The new theme wipes in as a circle growing from the button; the icons turn over inside it.
+  const flip = (e: MouseEvent<HTMLButtonElement>) => {
+    const apply = () => {
+      const next = readTheme() === "dark" ? "light" : "dark";
+      document.documentElement.dataset.theme = next;
+      try {
+        localStorage.setItem("theme", next);
+      } catch {}
+    };
+    if (!document.startViewTransition || matchMedia("(prefers-reduced-motion: reduce)").matches) return apply();
+    const box = e.currentTarget.getBoundingClientRect();
+    const x = box.left + box.width / 2;
+    const y = box.top + box.height / 2;
+    const radius = Math.hypot(Math.max(x, innerWidth - x), Math.max(y, innerHeight - y));
+    document.startViewTransition(apply).ready.then(() =>
+      document.documentElement.animate(
+        { clipPath: [`circle(0px at ${x}px ${y}px)`, `circle(${radius}px at ${x}px ${y}px)`] },
+        { duration: 700, easing: "cubic-bezier(0.16, 1, 0.3, 1)", pseudoElement: "::view-transition-new(root)" },
+      ),
+    );
   };
+  const turn = "col-start-1 row-start-1 transition-[transform,opacity] duration-500 ease-[cubic-bezier(0.16,1,0.3,1)]";
   return (
-    <button type="button" onClick={flip} className={className}>
-      <span className="link dark:hidden">Dark mode</span>
-      <span className="link hidden dark:inline">Light mode</span>
+    <button type="button" onClick={flip} className={className} aria-label="Toggle dark mode">
+      <span className="grid place-items-center">
+        <TbMoon aria-hidden size={20} className={`${turn} dark:scale-50 dark:-rotate-90 dark:opacity-0`} />
+        <TbSun aria-hidden size={20} className={`${turn} scale-50 rotate-90 opacity-0 dark:scale-100 dark:rotate-0 dark:opacity-100`} />
+      </span>
     </button>
   );
 }
-
 
 // Photos drifting past under Experience: hackathons, competitions and the exchange program.
 const galleryItems = content.gallery;
