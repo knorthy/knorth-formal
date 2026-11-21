@@ -165,7 +165,7 @@ export default function Home() {
           <div className="draw h-px bg-rule" />
           <ProjectDeck />
           <div className="h-px bg-rule" />
-          <h3 className="mt-10 mb-6 font-sans text-sm text-muted">What I can offer</h3>
+          <h3 className="mt-10 mb-6 font-sans text-sm text-muted">What I build</h3>
           <WhatIBuild />
         </section>
 

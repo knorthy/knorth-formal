@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { content } from "../content";
 import GroupedCards, { type CardGroup } from "../grouped-cards";
+import Link from "next/link";
 import PageShell from "../page-shell";
 
 export const metadata: Metadata = {
@@ -45,7 +46,14 @@ export default function ProjectsPage() {
     <PageShell
       current="/projects"
       title="Projects"
-      intro="Mobile apps, web builds, a 3D game and embedded hardware, grouped by what they are. Each links to its code where the code is public."
+      intro={
+        <>
+          These are my tech projects: mobile apps, web builds, a 3D game and embedded hardware, grouped by what they are. Each links to its code where the code is public.{" "}
+          <Link href="/projects/graphics" className="link text-ink">
+            Go to graphics projects ↗
+          </Link>
+        </>
+      }
       count={`${total} projects`}
     >
       <GroupedCards groups={groups()} noun="project" label="Filter by type" />

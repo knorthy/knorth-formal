@@ -137,12 +137,26 @@ export const content = {
     { title: "QCSP Competition", image: "/projects/websites-qcsp.webp", category: "Web", org: "Competition landing page for the official QCSP 2026 website", tools: "React, TypeScript, CSS, Git, GitHub", description: "Volunteer developer for Quantum Computing Society Philippines. Assigned to design and develop the competition landing page for the official QCSP 2026 website.", href: "https://github.com/knorthy/QCSP-Compe", when: "" },
     { title: "Personal websites", image: "/projects/websites-personal.webp", category: "Web", org: "Personal websites I designed and built", tools: "Next.js, React, Tailwind CSS, TypeScript", when: "" },
   ],
-  // "What I can offer" on the homepage: four steps, each with a short description and its tools.
+  // Graphic design work for /projects/graphics: one video and the pictures shown in the carousel and
+  // the masonry grid. Files live in /public/graphics.
+  graphicsVideo: { src: "/graphics/bcc-teaser.mp4", poster: "/work/motion-bcc-teaser.jpg", title: "BCC teaser" },
+  graphics: [
+    { img: "/graphics/poster-pangamba.webp", w: 1080, h: 1821, title: "Pangamba", description: "Poster" },
+    { img: "/graphics/pubmat-panangdayaw.webp", w: 1600, h: 1600, title: "Panangdayaw", description: "Publication material" },
+    { img: "/graphics/poster-1.webp", w: 851, h: 1280, title: "Poster", description: "Poster" },
+    { img: "/graphics/pubmat-pixelated.webp", w: 1080, h: 1080, title: "Pixelated", description: "Publication material" },
+    { img: "/graphics/poster-hiv-shien.webp", w: 411, h: 618, title: "HIV Shien", description: "Poster" },
+    { img: "/graphics/pubmat-csso.webp", w: 1080, h: 1080, title: "CSSO", description: "Publication material" },
+    { img: "/graphics/pubmat-1.webp", w: 1600, h: 1600, title: "Publication material", description: "Publication material" },
+    { img: "/graphics/pubmat-wo-bg.webp", w: 1080, h: 1080, title: "Publication material", description: "Publication material" },
+    { img: "/graphics/pubmat-2.webp", w: 1600, h: 1600, title: "Publication material", description: "Publication material" },
+  ],
+  // "What I can offer" on the homepage: four services, each with a short description and its tools.
   process: [
-    { name: "Plan", text: "We talk through the idea, who it is for and what to build first.", tools: "Requirements · User flows" },
-    { name: "Design", text: "I sketch and design the screens in Figma so you can give feedback before any code.", tools: "Figma · Prototyping" },
-    { name: "Develop", text: "I build the web app or mobile app, and the hardware or AI part if the project needs it.", tools: "React · Next.js · React Native · Python · ESP32" },
-    { name: "Deploy", text: "I test it, put it online and hand over the code with notes on how it works.", tools: "Vercel · AWS · GitHub" },
+    { name: "Mobile application", text: "Cross-platform apps for iOS and Android, from the first screen to a working build.", tools: "React Native · Expo · FlutterFlow" },
+    { name: "Web application", text: "Websites and web apps, designed in Figma first and then built and put online.", tools: "React · Next.js · TypeScript · Vercel" },
+    { name: "Microcontrollers", text: "Sensor and control projects on small boards, with the code and the circuit.", tools: "ESP32 · Arduino · C++" },
+    { name: "Machine learning", text: "Models for image recognition and other tasks, trained and put into an app.", tools: "Python · TensorFlow · PyTorch · YOLO" },
   ],
   skills: [
     { group: "Frontend", items: "Next.js, React, Vite, Zustand, Tailwind CSS, JavaScript, TypeScript, CSS" },
