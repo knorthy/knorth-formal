@@ -2,7 +2,8 @@
 // Needs GEMINI_API_KEY in .env.local (free from https://aistudio.google.com/apikey).
 // Optional GEMINI_MODEL picks the first model to try; otherwise fast free-tier models are tried in order.
 import { ApiError, GoogleGenAI, type GenerateContentResponse } from "@google/genai";
-import { buildSystemPrompt } from "@/lib/chat-knowledge";
+import { buildConversationNotes, buildSystemPrompt } from "@/lib/chat-knowledge";
+import { DAY, MINUTE, clientIp, limiter, readJson, sameOrigin } from "@/lib/guard";
 
 // Google retires and throttles models often, so a busy or retired model falls through to the next one.
 // Lite models answer portfolio questions well and start replying in about 2 seconds.
@@ -16,22 +17,20 @@ const RETRYABLE = new Set([404, 429, 500, 503]);
 const FIRST_CHUNK_MS = 10_000; // how long one model may stay silent before the next is tried
 const MAX_TURNS = 12; // conversation history sent per request
 const MAX_CHARS = 600; // per visitor message
-const RATE_LIMIT = { windowMs: 10 * 60 * 1000, max: 20 }; // per visitor IP
+const burst = limiter(10 * MINUTE, 20); // per visitor IP
+const perDay = limiter(DAY, 100); // per visitor IP
+const everyone = limiter(DAY, 600); // whole site, to stay inside the free Gemini quota
 
 const SYSTEM = buildSystemPrompt();
 
-type ChatMessage = { role: "user" | "assistant"; content: string };
+// The visitor picks how Kniah sounds. Only these keys are accepted, so no visitor text reaches the prompt.
+const TONES: Record<string, string> = {
+  casual: "",
+  formal: "\n\nTone for this chat: formal and professional, like a note to a hiring manager. No cat noises, slang or emojis.",
+  funny: "\n\nTone for this chat: playful and funny, with light cat puns and the odd joke. Stay accurate and never invent facts to be funny.",
+};
 
-// Best-effort, per-instance limiter. Good enough for a portfolio; swap for a shared store if needed.
-const hits = new Map<string, number[]>();
-function rateLimited(ip: string): boolean {
-  const now = Date.now();
-  const recent = (hits.get(ip) ?? []).filter((t) => now - t < RATE_LIMIT.windowMs);
-  recent.push(now);
-  hits.set(ip, recent);
-  if (hits.size > 5000) hits.delete(hits.keys().next().value as string);
-  return recent.length > RATE_LIMIT.max;
-}
+type ChatMessage = { role: "user" | "assistant"; content: string };
 
 function parseMessages(body: unknown): ChatMessage[] | null {
   if (!body || typeof body !== "object" || !Array.isArray((body as { messages?: unknown }).messages)) return null;
@@ -54,11 +53,22 @@ const json = (status: number, error: string) =>
   new Response(JSON.stringify({ error }), { status, headers: { "content-type": "application/json" } });
 
 export async function POST(req: Request) {
-  const ip = req.headers.get("x-real-ip") || req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "local";
-  if (rateLimited(ip)) return json(429, "rate_limited");
+  if (!sameOrigin(req)) return json(403, "forbidden");
+  if (burst(clientIp(req)) || perDay(clientIp(req))) return json(429, "rate_limited");
+  if (everyone("all")) return json(503, "busy");
 
-  const messages = parseMessages(await req.json().catch(() => null));
+  const payload = await readJson(req, 20_000);
+  const messages = parseMessages(payload);
   if (!messages) return json(400, "bad_request");
+  const { tone: toneKey, notes: rawNotes } = (payload ?? {}) as { tone?: string; notes?: unknown };
+  const tone = TONES[toneKey ?? ""] ?? "";
+  // What the visitor said earlier (e.g. the role they're hiring for), kept by the page past the trimmed history
+  const visitorNotes = (Array.isArray(rawNotes) ? rawNotes : [])
+    .filter((n): n is string => typeof n === "string")
+    .slice(0, 3)
+    .map((n) => n.trim().slice(0, 200))
+    .filter(Boolean);
+  const notes = buildConversationNotes(messages, visitorNotes);
 
   // No key on the server: say so plainly instead of failing mid-stream
   const apiKey = process.env.GEMINI_API_KEY;
@@ -83,9 +93,9 @@ export async function POST(req: Request) {
               model,
               contents,
               config: {
-                systemInstruction: SYSTEM,
+                systemInstruction: SYSTEM + tone + notes,
                 maxOutputTokens: 2048, // the prompt asks for short answers; this is only a ceiling
-                temperature: 0.7,
+                temperature: 0.9, // a little higher so repeated topics are not worded the same way
                 abortSignal: ctl.signal,
               },
             });

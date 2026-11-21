@@ -173,11 +173,13 @@ export default function Home() {
         <section id="skills" aria-labelledby="skills-title">
           <div className="draw draw-view h-px bg-rule" />
           <div className="py-14 md:py-20">
-            <h2 id="skills-title" className="mb-8 text-lg font-medium">
-              Skills
-            </h2>
-            <div className="mb-10">
-              <SkillsLoop />
+            <div className="mb-10 flex items-center gap-6">
+              <h2 id="skills-title" className="text-lg font-medium">
+                Skills
+              </h2>
+              <div className="min-w-0 flex-1">
+                <SkillsLoop />
+              </div>
             </div>
             <SkillTerminal />
           </div>

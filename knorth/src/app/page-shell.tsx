@@ -20,7 +20,7 @@ const PAGES = [
 export default function PageShell(props: {
   current: string;
   title: string;
-  intro: string;
+  intro: ReactNode;
   count: string;
   children: ReactNode;
 }) {

@@ -58,7 +58,7 @@ function CardLink({ item }: { item: CardItem }) {
     >
       <span className="link">{link.label}</span>
       <span aria-hidden className="ml-1">
-        →
+        ↗
       </span>
     </button>
   );
@@ -165,6 +165,7 @@ export default function GroupedCards({
 
   return (
     <>
+      {groups.length > 1 && (
       <div
         className="-mx-6 flex gap-x-6 overflow-x-auto border-b border-rule px-6 whitespace-nowrap md:mx-0 md:px-0"
         role="tablist"
@@ -185,8 +186,9 @@ export default function GroupedCards({
           </button>
         ))}
       </div>
+      )}
 
-      <div className="mt-12 flex flex-col gap-16">
+      <div className={`${groups.length > 1 ? "mt-12" : ""} flex flex-col gap-16`}>
         {shown.map((g) => (
           <section key={g.name} aria-label={g.name}>
             <div className="mb-5 flex items-center gap-3">

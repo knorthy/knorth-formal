@@ -2,15 +2,22 @@
 // Needs RESEND_API_KEY and CONTACT_TO_EMAIL in .env.local. Plain-text mail only, so nothing is injected as HTML.
 // shortcut: sends from Resend's shared onboarding@resend.dev (delivers only to the Resend account's own email);
 // verify a domain in Resend and set CONTACT_FROM_EMAIL to send from it.
-const RATE_LIMIT = { windowMs: 10 * 60 * 1000, max: 5 }; // per visitor IP
-const hits = new Map<string, number[]>();
-function rateLimited(ip: string): boolean {
-  const now = Date.now();
-  const recent = (hits.get(ip) ?? []).filter((t) => now - t < RATE_LIMIT.windowMs);
-  recent.push(now);
-  hits.set(ip, recent);
-  if (hits.size > 5000) hits.delete(hits.keys().next().value as string);
-  return recent.length > RATE_LIMIT.max;
+import { DAY, HOUR, MINUTE, clientIp, limiter, readJson, sameOrigin } from "@/lib/guard";
+
+// Resend's free plan allows about 100 emails a day, so these caps stop one sender from using it up.
+const burst = limiter(10 * MINUTE, 5); // per IP, every request (also junk)
+const ipHour = limiter(HOUR, 3); // per IP, real sends
+const ipDay = limiter(DAY, 5);
+const emailDay = limiter(DAY, 2); // per sender address, so one person can't rotate names on one email
+const everyone = limiter(DAY, 30); // whole site: leaves room under the 100 a day
+const sent = new Set<string>(); // messages already delivered today, to ignore copy-paste spam
+setInterval(() => sent.clear(), DAY).unref?.();
+
+// Gmail ignores dots and +tags, so a.b+1@gmail.com and ab+2@gmail.com are the same inbox
+function canonical(email: string) {
+  const [local, domain] = email.toLowerCase().split("@");
+  if (domain === "gmail.com" || domain === "googlemail.com") return `${local.split("+")[0].replace(/\./g, "")}@gmail.com`;
+  return `${local}@${domain}`;
 }
 
 const json = (status: number, error?: string) =>
@@ -19,14 +26,26 @@ const json = (status: number, error?: string) =>
 const str = (v: unknown, max: number) => (typeof v === "string" ? v.trim().slice(0, max) : "");
 
 export async function POST(req: Request) {
-  const ip = req.headers.get("x-real-ip") || req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "local";
-  if (rateLimited(ip)) return json(429, "rate_limited");
+  if (!sameOrigin(req)) return json(403, "forbidden");
+  const ip = clientIp(req);
+  if (burst(ip)) return json(429, "rate_limited");
 
-  const body = (await req.json().catch(() => null)) as Record<string, unknown> | null;
+  const body = (await readJson(req, 10_000)) as Record<string, unknown> | null;
+  // Bots fill the hidden "website" field or post within a second of the page loading: pretend it worked
+  const elapsed = typeof body?.elapsed === "number" ? body.elapsed : 0;
+  if (str(body?.website, 10) || elapsed < 2500) return json(200);
   const name = str(body?.name, 100);
   const email = str(body?.email, 200);
   const message = str(body?.message, 3000);
   if (!name || !message || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return json(400, "bad_request");
+
+  if ((message.match(/https?:\/\//gi) ?? []).length > 2) return json(400, "bad_request"); // link spam
+
+  // Limits apply only to messages that would really be sent
+  const fingerprint = `${canonical(email)}|${message.toLowerCase().replace(/\s+/g, " ")}`;
+  if (sent.has(fingerprint)) return json(200); // same message again: ignore quietly
+  if (ipHour(ip) || ipDay(ip) || emailDay(canonical(email))) return json(429, "rate_limited");
+  if (everyone("all")) return json(503, "busy");
 
   const key = process.env.RESEND_API_KEY;
   const to = process.env.CONTACT_TO_EMAIL;
@@ -44,5 +63,6 @@ export async function POST(req: Request) {
     }),
   }).catch(() => null);
   if (!res?.ok) return json(502, "send_failed");
+  sent.add(fingerprint);
   return json(200);
 }
