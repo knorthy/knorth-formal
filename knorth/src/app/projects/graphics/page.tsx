@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import FlexCarousel from "@/components/FlexCarousel";
 import GraphicsMasonry from "./graphics-masonry";
 import { content } from "../../content";
 import PageShell from "../../page-shell";
@@ -10,8 +9,7 @@ export const metadata: Metadata = {
   description: `Graphic design work by ${content.name}: posters, social posts, video and motion graphics.`,
 };
 
-const items = content.graphics.map((g, i) => ({ id: i, img: g.img, width: g.w, height: g.h, title: g.title, description: g.description }));
-const slides = content.graphics.map((g) => ({ src: g.img, alt: g.title, title: g.title, subtitle: g.description }));
+const items = content.graphics.map((g, i) => ({ id: i, img: g.img, width: g.w, height: g.h, title: g.title, description: g.description, category: g.category }));
 
 export default function GraphicsPage() {
   const { src, poster, title } = content.graphicsVideo;
@@ -29,6 +27,7 @@ export default function GraphicsPage() {
       }
       count={`${content.graphics.length} works`}
     >
+      <h2 className="mb-4 text-lg font-medium">Motion Graphics</h2>
       <video
         controls
         preload="metadata"
@@ -39,11 +38,7 @@ export default function GraphicsPage() {
         <source src={src} />
       </video>
 
-      <div className="relative mt-12 h-[400px] w-full md:mt-16 md:h-[560px]">
-        <FlexCarousel items={slides} preset="liquid" intro="rise" cardHeight={0.5} gap={12} squeeze={0.2} focusOnClick captions />
-      </div>
-
-      <div className="mt-16">
+      <div className="mt-12 md:mt-16">
         <GraphicsMasonry items={items} />
       </div>
     </PageShell>

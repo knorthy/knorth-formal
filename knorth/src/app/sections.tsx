@@ -29,8 +29,8 @@ import Link from "next/link";
 
 // Canvas components need real colour values, not CSS variables. Keep in step with globals.css.
 const PALETTE = {
-  light: { ink: "#141413", paper: "#fafaf8", sheet: "#ffffff", well: "#e6e6e1", band: "#9d9d98" },
-  dark: { ink: "#ededea", paper: "#141413", sheet: "#262624", well: "#2a2a28", band: "#6f6f6b" },
+  light: { ink: "#0a0a0a", paper: "#ffffff", sheet: "#f5f5f5", well: "#e9e9e9", band: "#a3a3a3" },
+  dark: { ink: "#f4f4f5", paper: "#0c0c0f", sheet: "#1e1e22", well: "#2a2a30", band: "#8a8a92" },
 };
 
 // The theme lives on <html data-theme>, set before paint by the script in layout.tsx.
@@ -200,8 +200,8 @@ export function HeroLanyard() {
               backImage="/lanyard/back.svg"
               strapImage="/lanyard/strap.svg"
               imageFit="contain"
-              cardColor="#fafaf8"
-              strapColor="#141413"
+              cardColor="#ffffff"
+              strapColor="#0a0a0a"
               metal="graphite"
               finish="glossy"
               anchor={box.anchor}
