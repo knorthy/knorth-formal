@@ -9,7 +9,7 @@ const pixel = Geist_Pixel({ variable: "--font-geist-pixel", subsets: ["latin"] }
 const geistMono = Geist_Mono({ variable: "--font-geist-mono", subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: `${content.name}, ${content.title}`,
+  title: "Tiffany Lyssa",
   description: content.bio,
 };
 

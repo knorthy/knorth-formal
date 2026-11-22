@@ -178,7 +178,7 @@ const THEMES: Record<'dark' | 'light', Record<string, string>> = {
     '--swap-media-edge': 'rgba(255, 255, 255, 0.06)',
     '--swap-ink': '#f4f4f5',
     '--swap-badge': 'rgba(255, 255, 255, 0.08)',
-    '--swap-shade': '#141413'
+    '--swap-shade': '#0a0a0a'
   },
   light: {
     '--swap-tile': 'linear-gradient(180deg, #ffffff 0%, #f6f6f8 100%)',

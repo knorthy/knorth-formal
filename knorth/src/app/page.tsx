@@ -4,7 +4,6 @@ import {
   ContactFooter,
   CredentialsGrid,
   ExperienceGrid,
-  GalleryWall,
   HeroLanyard,
   ProjectDeck,
   SkillsLoop,
@@ -189,22 +188,6 @@ export default function Home() {
           <div className="draw draw-view h-px bg-rule" />
           <div className="py-14 md:py-20">
             <ExperienceGrid />
-          </div>
-        </section>
-
-        {/* Heading and line keep the side-heading grid; the wall itself spans the whole sheet. */}
-        <section id="gallery" aria-labelledby="gallery-title">
-          <div className="draw draw-view h-px bg-rule" />
-          <div className="grid gap-x-10 gap-y-6 pt-14 pb-8 md:grid-cols-[200px_1fr] md:pt-20">
-            <h2 id="gallery-title" className="text-lg font-medium">
-              Gallery
-            </h2>
-            <p className="text-[15px] text-balance text-muted">
-              Where I&apos;ve been and what I&apos;ve been up to lately, caught on camera along the way. Hover a photo to bring it forward in colour.
-            </p>
-          </div>
-          <div className="pb-14 md:pb-20">
-            <GalleryWall />
           </div>
         </section>
 

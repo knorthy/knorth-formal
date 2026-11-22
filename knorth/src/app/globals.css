@@ -3,10 +3,10 @@
 @custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
 
 @theme {
-  --color-paper: #fafaf8;
-  --color-ink: #141413;
-  --color-muted: #666668;
-  --color-rule: #ecece8;
+  --color-paper: #ffffff;
+  --color-ink: #0a0a0a;
+  --color-muted: #737373;
+  --color-rule: #e9e9e9;
 }
 @theme inline {
   --font-sans: var(--font-geist-mono);
@@ -16,10 +16,10 @@
 
 /* Dark mode is the same sheet with ink and paper traded. Keep in step with PALETTE in sections.tsx. */
 [data-theme="dark"] {
-  --color-paper: #141413;
-  --color-ink: #ededea;
-  --color-muted: #a3a39e;
-  --color-rule: #232321;
+  --color-paper: #0c0c0f;
+  --color-ink: #f4f4f5;
+  --color-muted: #a0a0a8;
+  --color-rule: #2a2a30;
   color-scheme: dark;
 }
 
